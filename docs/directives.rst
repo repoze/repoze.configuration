@@ -63,3 +63,19 @@ Other legal uses:
    # includes the file at the absolute path "/foo/bar/baz/some.yml"
    filename = /foo/bar/baz/some.yml
 
+The ``include`` directive supports an additional key named
+``override``.  Usually if two declarations' discriminators conflict
+with each other, a ``ConfigurationConflict`` error will be raised.  If
+you include another file using the ``include`` directive and set the
+directive's ``override`` key to true, any declaration made within the
+included file will override any previously made declaration with the
+same discriminator.  For example:
+
+.. code-block:: text
+
+   -- !include
+   # includes the file at the absolute path "/foo/bar/baz/some.yml"
+   # overriding any previous declarations
+   filename = /foo/bar/baz/some.yml
+   override = true
+

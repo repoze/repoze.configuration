@@ -39,6 +39,11 @@ class Context(object):
             return None
         return self.stack[-1]['package']
 
+    def current_override(self):
+        if not self.stack:
+            return False
+        return self.stack[-1]['override']
+
     def stream(self, filename, package=None):
         if os.path.isabs(filename):
             return open(filename)

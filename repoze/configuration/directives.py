@@ -12,5 +12,6 @@ def include(context, structure):
     else:
         package = context.current_package()
     filename = context.getvalue(structure, 'filename', 'configure.yml')
-    override = context.getvalue(structure, 'override', False)
+    override = context.getvalue(structure, 'override',
+                                context.current_override())
     context.load(filename, package, override)

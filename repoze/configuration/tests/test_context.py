@@ -81,6 +81,15 @@ class TestContext(unittest.TestCase):
         context = self._makeOne()
         context.stack.append({'package':'abc'})
         self.assertEqual(context.current_package(), 'abc')
+
+    def test_current_override_nostack(self):
+        context = self._makeOne()
+        self.assertEqual(context.current_override(), False)
+
+    def test_current_override_withstack(self):
+        context = self._makeOne()
+        context.stack.append({'override':True})
+        self.assertEqual(context.current_override(), True)
         
     def test_stream_absolute(self):
         import os

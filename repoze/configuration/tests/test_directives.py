@@ -63,6 +63,9 @@ class DummyContext:
     def current_package(self):
         return 'package'
 
+    def current_override(self):
+        return False
+
     def load(self, filename, package, override):
         self.loaded = (filename, package, override)
         

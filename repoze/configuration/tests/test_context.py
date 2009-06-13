@@ -26,6 +26,15 @@ class TestContext(unittest.TestCase):
         self.assertEqual(action.callback, 'callback')
         self.assertEqual(action.node, 'node')
 
+    def test_action_withconflict(self):
+        from repoze.configuration.context import ConfigurationConflict
+        context = self._makeOne()
+        context.discriminators['discriminator'] = DummyAction()
+        context.stack = [{'override':False}]
+        self.assertRaises(ConfigurationConflict,
+                          context.action, 'discriminator', 'callback',
+                          DummyNode())
+
     def test_resolve_absolute(self):
         from repoze.configuration.tests.fixtures import fixturefunc
         context = self._makeOne()
@@ -164,10 +173,38 @@ class TestAction(unittest.TestCase):
         action = self._makeOne('discriminator', callback, 'node')
         action.execute()
         self.assertEqual(callback.called, True)
-        
+
+class TestConfigurationConflict(unittest.TestCase):
+    def _getTargetClass(self):
+        from repoze.configuration.context import ConfigurationConflict
+        return ConfigurationConflict
+
+    def _makeOne(self, node1, node2):
+        error = self._getTargetClass()(node1, node2)
+        return error
+
+    def test_ctor(self):
+        node1 = DummyNode()
+        node2 = DummyNode()
+        error = self._makeOne(node1, node2)
+        self.assertEqual(error.node1, node1)
+        self.assertEqual(error.node2, node2)
+        self.failUnless(error.msg.startswith('Conflicting declarations'))
+
+class DummyMark:
+    line = 1
+    column = 1
+    name = 'dummy'
+
+class DummyNode:
+    start_mark = DummyMark()
+    end_mark = DummyMark()
 
 class DummyAction:
     executed = False
+    def __init__(self):
+        self.node = DummyNode()
+
     def execute(self):
         self.executed = True
         

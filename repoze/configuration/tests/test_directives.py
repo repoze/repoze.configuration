@@ -19,25 +19,31 @@ class TestInclude(unittest.TestCase):
         context = DummyContext()
         structure = {'package':'here'}
         self._callFUT(context, structure)
-        self.assertEqual(context.loaded, ('configure.yml', 'here'))
+        self.assertEqual(context.loaded, ('configure.yml', 'here', False))
 
     def test_package_not_none_filename_not_none(self):
         context = DummyContext()
         structure = {'package':'here', 'filename':'here.yml'}
         self._callFUT(context, structure)
-        self.assertEqual(context.loaded, ('here.yml', 'here'))
+        self.assertEqual(context.loaded, ('here.yml', 'here', False))
 
     def test_package_none_filename_none(self):
         context = DummyContext()
         structure = {}
         self._callFUT(context, structure)
-        self.assertEqual(context.loaded, ('configure.yml', 'package'))
+        self.assertEqual(context.loaded, ('configure.yml', 'package', False))
 
     def test_package_none_filename_not_none(self):
         context = DummyContext()
         structure = {'filename':'here.yml'}
         self._callFUT(context, structure)
-        self.assertEqual(context.loaded, ('here.yml', 'package'))
+        self.assertEqual(context.loaded, ('here.yml', 'package', False))
+
+    def test_withoverride(self):
+        context = DummyContext()
+        structure = {'filename':'here.yml', 'override':True}
+        self._callFUT(context, structure)
+        self.assertEqual(context.loaded, ('here.yml', 'package', True))
 
 class DummyContext:
     def __init__(self, diff=None):
@@ -57,7 +63,7 @@ class DummyContext:
     def current_package(self):
         return 'package'
 
-    def load(self, filename, package):
-        self.loaded = (filename, package)
+    def load(self, filename, package, override):
+        self.loaded = (filename, package, override)
         
     

@@ -9,8 +9,15 @@ class Context(object):
         self.registry = registry
         self.actions = []
         self.stack = []
+        self.discriminators = {}
 
     def action(self, discriminator, callback, node):
+        if self.stack and not self.stack[-1]['override']:
+            if discriminator in self.discriminators:
+                conflicting_action = self.discriminators[discriminator]
+                raise ConfigurationConflict(node, conflicting_action.node)
+                
+        self.discriminators
         self.actions.append(Action(discriminator, callback, node))
 
     def resolve(self, dottedname):
@@ -47,9 +54,10 @@ class Context(object):
             action.execute()
         return self.registry
 
-    def load(self, filename, package):
+    def load(self, filename, package, override=False):
         stream = self.stream(filename, package)
-        self.stack.append({'filename':filename, 'package':package})
+        self.stack.append({'filename':filename, 'package':package,
+                           'override':override})
         try:
             loader = PluginLoader(self, stream)
             while loader.check_data():
@@ -80,4 +88,29 @@ class Action(object):
         
     def execute(self):
         self.callback()
+
+class ConfigurationConflict(Exception):
+    def __init__(self, node1, node2):
+        self.node1 = node1
+        self.node2 = node2
+        self.msg = str(self)
+
+    def __str__(self):
+        message = []
+        message.append('Conflicting declarations: ')
+        message.append(self._lineinfo(self.node1))
+        message.append('conflicts with')
+        message.append(self._lineinfo(self.node2))
+        return '\n'.join(message)
+
+    def _lineinfo(self, node):
+        msg = ('lines %s:%s-%s:%s of file "%s"' % (
+            node.start_mark.line,
+            node.start_mark.column,
+            node.end_mark.line,
+            node.end_mark.column,
+            node.start_mark.name,
+            )
+        )
+        return msg
 

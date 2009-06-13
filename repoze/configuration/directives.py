@@ -2,7 +2,7 @@ def include(context, structure):
     if not isinstance(structure, dict):
         raise ValueError('Bad structure for include directive')
 
-    diff = context.diffnames(structure, ['package', 'filename'])
+    diff = context.diffnames(structure, ['package', 'filename', 'override'])
     if diff:
         raise ValueError('Unknown key(s) in "include" directive: %r' % diff)
 
@@ -12,4 +12,5 @@ def include(context, structure):
     else:
         package = context.current_package()
     filename = context.getvalue(structure, 'filename', 'configure.yml')
-    context.load(filename, package)
+    override = context.getvalue(structure, 'override', False)
+    context.load(filename, package, override)

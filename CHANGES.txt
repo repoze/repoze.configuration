@@ -1,7 +1,7 @@
-repoze.atemplate Changelog
-==========================
+repoze.configuration Changelog
+==============================
 
-0.1 (unreleaesd)
+0.1 (unreleased)
 ----------------
 
 - Initial release.

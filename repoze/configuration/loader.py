@@ -42,6 +42,5 @@ def ep_multi_constructor(loader, suffix, node, iterator=None):
         raise exc_info[0], why, exc_info[2]
 
     if result is not None:
-        discriminator, callback = result
-        loader.context.action(discriminator, callback, node)
+        loader.context.action(result, node)
 

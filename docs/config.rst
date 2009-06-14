@@ -33,7 +33,7 @@ setuptools entry point.  Here's an example directive:
            context.registry['charset'] = charset
            contex.registry['debug_mode'] = debug_mode
        discriminator = 'appsettings'
-       return discriminator, callback
+       return {'discriminator':discriminator, 'callback':callback}
 
 A :mod:`repoze.configuration` directive must accept a "context" object
 (a :mod:`repoze-plugin` ``repoze.configuration.Context`` instance,
@@ -44,7 +44,7 @@ but can also be a sequence or a scalar.  See the :term:`YAML`
 documentation for more information about allowable types within a YAML
 "document".
 
-A :mod:`repoze.configuration` must return a two-tuple composed of
+A :mod:`repoze.configuration` must return a dictionary with the keys
 ``discriminator`` and ``callback`` , or it must return ``None``.
 
 Directives are permitted to do arbitrary things, but to be most
@@ -53,22 +53,22 @@ returning a callback that actually performs "the work".  This callback
 will be called by :mod:`repoze.configuration` after all directives have been
 loaded and called.
 
-The code in the callback returned from a :mod:`repoze.configuration`
-direcive often populates the ``registry`` dictionary attached to the
-context.  It is also assumed that a directive will use the provided
-"context" object as a scratchpad for temporary data if it needs to
-collaborate in some advanced way with other directives.  The context
-object is not "precious" in any way.
+The code in the ``callback`` returned in the dictionary from a
+:mod:`repoze.configuration` direcive often populates the ``registry``
+dictionary attached to the context.  It is also assumed that a
+directive will use the provided "context" object as a scratchpad for
+temporary data if it needs to collaborate in some advanced way with
+other directives.  The context object is not "precious" in any way.
 
 The ``discriminator`` value that a directive returns is used to
 perform conflict resolution during deferred callback processing.  If
 more than one directive returns the same discriminator, and the YAML
 structure that the directive uses is in a separate file (via
 :ref:`include_directive`), an error is thrown.  In effect, the
-discriminator provides directives with cardinality: two directives in
-two separate files may not return the same discriminator without the
-system detecting a conflict, and raising an error.  XXX conflict
-detection untrue currently
+discriminator provides directives with cardinality: two directives may
+not return the same discriminator without the system detecting a
+conflict, and raising an error unless the directive is an override
+(see :ref:`include_override`).
 
 A directive may return ``None``, in which case no deferred callback is
 performed.

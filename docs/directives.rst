@@ -63,6 +63,11 @@ Other legal uses:
    # includes the file at the absolute path "/foo/bar/baz/some.yml"
    filename = /foo/bar/baz/some.yml
 
+.. _include_override:
+
+Include Overrides
+~~~~~~~~~~~~~~~~~
+
 The ``include`` directive supports an additional key named
 ``override``.  Usually if two declarations' discriminators conflict
 with each other, a ``ConfigurationConflict`` error will be raised.  If

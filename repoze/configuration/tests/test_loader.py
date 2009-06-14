@@ -38,7 +38,7 @@ class Test_ep_multi_constructor(unittest.TestCase):
         context = DummyContext()
         loader = DummyLoader(context)
         self._callFUT(loader, 'whatever', node, iterator)
-        self.assertEqual(context.actions, [('a', 'b', node)])
+        self.assertEqual(context.actions, [(('a', 'b'), node)])
 
     def test_withexception(self):
         point = DummyPoint(('a', 'b'), raise_exc=True)
@@ -53,8 +53,8 @@ class Test_ep_multi_constructor(unittest.TestCase):
 class DummyContext:
     def __init__(self):
         self.actions = []
-    def action(self, discriminator, callback, node):
-        self.actions.append((discriminator, callback, node))
+    def action(self, info, node):
+        self.actions.append((info, node))
         
 class DummyPoint:
     def __init__(self, result, raise_exc=False):

@@ -19,7 +19,8 @@ class TestContext(unittest.TestCase):
 
     def test_action(self):
         context = self._makeOne()
-        context.action('discriminator', 'callback', 'node')
+        context.action({'discriminator':'discriminator',
+                        'callback':'callback'}, 'node')
         self.assertEqual(len(context.actions), 1)
         action = context.actions[0]
         self.assertEqual(action.discriminator, 'discriminator')
@@ -32,7 +33,9 @@ class TestContext(unittest.TestCase):
         context.discriminators['discriminator'] = DummyAction()
         context.stack = [{'override':False}]
         self.assertRaises(ConfigurationConflict,
-                          context.action, 'discriminator', 'callback',
+                          context.action,
+                          {'discriminator':'discriminator',
+                           'callback':'callback'},
                           DummyNode())
 
     def test_resolve_absolute(self):

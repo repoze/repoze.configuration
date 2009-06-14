@@ -11,7 +11,9 @@ class Context(object):
         self.stack = []
         self.discriminators = {}
 
-    def action(self, discriminator, callback, node):
+    def action(self, info, node):
+        discriminator = info['discriminator']
+        callback = info['callback']
         if self.stack and not self.stack[-1]['override']:
             if discriminator in self.discriminators:
                 conflicting_action = self.discriminators[discriminator]

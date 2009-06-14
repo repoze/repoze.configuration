@@ -160,6 +160,21 @@ class TestContext(unittest.TestCase):
         structure = {'a':'1'}
         self.assertEqual(context.getvalue(structure, 'a'), '1')
 
+    def test_call_later(self):
+        context = self._makeOne()
+        class Callback:
+            def __call__(self, *arg, **kw):
+                self.arg = arg
+                self.kw = kw
+                return True
+        callback = Callback()
+        sequence = [1,2,3]
+        deferred = context.call_later(callback, 1, 2, name=1, *sequence)
+        result = deferred()
+        self.assertEqual(result, True)
+        self.assertEqual(callback.arg, (1,2,1,2,3))
+        self.assertEqual(callback.kw, {'name':1})
+
 class TestAction(unittest.TestCase):
     def _getTargetClass(self):
         from repoze.configuration.context import Action

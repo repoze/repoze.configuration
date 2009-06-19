@@ -27,7 +27,7 @@ def ep_multi_constructor(loader, suffix, node, iterator=None):
     context = loader.context
 
     try:
-        result = point(context, structure)
+        infos = point(context, structure)
     except Exception, why:
         exc_info = sys.exc_info()
         msg = ('(while processing lines %s:%s-%s:%s of file "%s")' % (
@@ -41,6 +41,10 @@ def ep_multi_constructor(loader, suffix, node, iterator=None):
         why.args += (msg,)
         raise exc_info[0], why, exc_info[2]
 
-    if result is not None:
-        loader.context.action(result, node)
+    if isinstance(infos, dict):
+        infos = [infos] # b/c
 
+    if infos is not None:
+        for info in infos:
+            context.action(info, node)
+            

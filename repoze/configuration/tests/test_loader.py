@@ -30,18 +30,28 @@ class Test_ep_multi_constructor(unittest.TestCase):
         self.assertRaises(ValueError, self._callFUT, None, 'notexist', None,
                           iterator=iterator)
 
-    def test_noexception(self):
-        point = DummyPoint(('a', 'b'))
+    def test_directive_returns_list(self):
+        point = DummyPoint([('a', 'b')])
         def iterator(group, name=None):
             return [point]
         node = DummyNode()
         context = DummyContext()
         loader = DummyLoader(context)
         self._callFUT(loader, 'whatever', node, iterator)
-        self.assertEqual(context.actions, [(('a', 'b'), node)])
+        self.assertEqual(context.actions, [(('a', 'b'), node)] )
+
+    def test_directive_returns_dict(self):
+        point = DummyPoint({'a':1})
+        def iterator(group, name=None):
+            return [point]
+        node = DummyNode()
+        context = DummyContext()
+        loader = DummyLoader(context)
+        self._callFUT(loader, 'whatever', node, iterator)
+        self.assertEqual(context.actions, [({'a':1}, node)] )
 
     def test_withexception(self):
-        point = DummyPoint(('a', 'b'), raise_exc=True)
+        point = DummyPoint([('a', 'b')], raise_exc=True)
         def iterator(group, name=None):
             return [point]
         node = DummyNode()

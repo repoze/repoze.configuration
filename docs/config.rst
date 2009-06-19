@@ -33,7 +33,7 @@ setuptools entry point.  Here's an example directive:
            context.registry['charset'] = charset
            contex.registry['debug_mode'] = debug_mode
        discriminator = 'appsettings'
-       return {'discriminator':discriminator, 'callback':callback}
+       return [ {'discriminator':discriminator, 'callback':callback} ]
 
 A :mod:`repoze.configuration` directive must accept a "context" object
 (a :mod:`repoze-plugin` ``repoze.configuration.Context`` instance,
@@ -44,42 +44,48 @@ but can also be a sequence or a scalar.  See the :term:`YAML`
 documentation for more information about allowable types within a YAML
 "document".
 
-A :mod:`repoze.configuration` must return a dictionary with the keys
-``discriminator`` and ``callback`` , or it must return ``None``.
+A :mod:`repoze.configuration` directive must return either a single
+dictionary, a sequence of dictionaries or ``None``.  If the directive
+returns a dictionary, it must contain the keys ``discriminator`` and
+``callback``.  If the directive returns a sequence, the sequence must
+consist entirely of dictionaries and each dictionary in the sequence
+must contain the keys ``discriminator`` and ``callback``
 
 Directives are permitted to do arbitrary things, but to be most
 effective, they should defer performing any mutation of data by
-returning a callback that actually performs "the work".  This callback
-will be called by :mod:`repoze.configuration` after all directives have been
-loaded and called.
+returning a set of callbacks (the ``callback`` value within each
+dictionary returned by the directive) which actually perform "the
+work".  These callbacks will be called by :mod:`repoze.configuration`
+after all directives have been loaded and called.
 
-The code in the ``callback`` returned in the dictionary from a
+Each ``callback`` within the the dictionaries returned from a
 :mod:`repoze.configuration` direcive often populates the ``registry``
 dictionary attached to the context.  It is also assumed that a
 directive will use the provided "context" object as a scratchpad for
 temporary data if it needs to collaborate in some advanced way with
 other directives.  The context object is not "precious" in any way.
 
-The ``discriminator`` value that a directive returns is used to
-perform conflict resolution during deferred callback processing.  If
-more than one directive returns the same discriminator, and the YAML
-structure that the directive uses is in a separate file (via
-:ref:`include_directive`), an error is thrown.  In effect, the
-discriminator provides directives with cardinality: two directives may
-not return the same discriminator without the system detecting a
+The ``discriminator`` value within a dictionary in the sequence that a
+directive returns is used to perform conflict resolution during
+deferred callback processing.  If more than one dictionary contains
+the same discriminator, an error is thrown at parse time.  In effect,
+the discriminator provides directives with cardinality: two directives
+may not return the same discriminator without the system detecting a
 conflict, and raising an error unless the directive is an override
 (see :ref:`include_override`).
 
-A directive may return ``None``, in which case no deferred callback is
-performed.
+A directive may also return ``None``, in which case no deferred
+callback is performed, nor is a discriminator registered for the
+directive.
 
 Registering a Directive
 -----------------------
 
 A directive callable is useless unless it's registered as a
-``repoze.configuration.directive`` setuptools entry point in some package's
-"setup.py" file.  For example, a setup.py for a package that provides
-a discriminator might have an "entry_points" argument like so:
+``repoze.configuration.directive`` setuptools entry point in some
+package's "setup.py" file.  For example, a setup.py for a package that
+provides a discriminator might have an "entry_points" argument like
+so:
 
 .. code-block:: python
 

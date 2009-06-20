@@ -88,7 +88,9 @@ class Context(object):
         return value
 
     def call_later(self, func, *arg, **kw):
-        return CallLater(func, *arg, **kw)
+        def callback():
+            return func(*arg, **kw)
+        return callback
 
 class Action(object):
     def __init__(self, discriminator, callback, node):
@@ -123,13 +125,4 @@ class ConfigurationConflict(Exception):
             )
         )
         return msg
-
-class CallLater(object):
-    def __init__(self, func, *arg, **kw):
-        self.func = (func,)
-        self.arg = arg
-        self.kw = kw
-
-    def __call__(self):
-        return self.func[0](*self.arg, **self.kw)
 

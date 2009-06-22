@@ -1,5 +1,5 @@
 Using the :mod:`repoze.configuration` Configuration System
-===================================================
+==========================================================
 
 :mod:`repoze.configuration` comes with a configuration system that
 makes it possible to populate a dictionary and perform other arbitrary

@@ -1,6 +1,13 @@
 repoze.configuration Changelog
 ==============================
 
+Next release
+------------
+
+- Trying to read any directive section that wasn't a YAML mapping
+  caused a TypeError (e.g. ``construct_scalar takes no argument
+  'deep'``).
+
 0.1 (2009-06-22)
 ----------------
 

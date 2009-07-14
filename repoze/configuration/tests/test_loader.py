@@ -60,6 +60,18 @@ class Test_ep_multi_constructor(unittest.TestCase):
         self.assertRaises(KeyError, self._callFUT, loader, 'whatever',
                           node, iterator)
 
+    def test_construct_mapping_uses_deep(self):
+        point = DummyPoint({'a':1})
+        def iterator(group, name=None):
+            return [point]
+        node = DummyNode('mapping')
+        context = DummyContext()
+        loader = DummyLoader(context)
+        self._callFUT(loader, 'whatever', node, iterator)
+        self.assertEqual(context.actions, [({'a':1}, node)] )
+        self.assertEqual(loader.deep, True)
+
+
 class DummyContext:
     def __init__(self):
         self.actions = []
@@ -82,7 +94,11 @@ class DummyPoint:
 class DummyLoader:
     def __init__(self, context):
         self.context = context
-    def construct_theid(self, node, deep=True):
+    def construct_theid(self, node):
+        return {}
+
+    def construct_mapping(self, node, deep=False):
+        self.deep = deep
         return {}
 
 class DummyMark:
@@ -91,8 +107,8 @@ class DummyMark:
     name = 'dummy'
     
 class DummyNode:
-    id = 'theid'
-    def __init__(self):
+    def __init__(self, id='theid'):
+        self.id = id
         self.start_mark = DummyMark()
         self.end_mark = DummyMark()
         

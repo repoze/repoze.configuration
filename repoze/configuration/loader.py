@@ -1,3 +1,4 @@
+import inspect
 import sys
 
 from yaml import Loader
@@ -23,7 +24,14 @@ def ep_multi_constructor(loader, suffix, node, iterator=None):
     point = points[0].load()
 
     structure_loader = getattr(loader, 'construct_%s' % node.id)
-    structure = structure_loader(node, deep=True)
+
+    if 'deep' in inspect.getargspec(structure_loader)[0]:
+        structure = structure_loader(node, deep=True)
+    else:
+        # scalar structures don't support the 'deep' argument, required
+        # for mappings XXX there has to be a better way.
+        structure = structure_loader(node)
+
     context = loader.context
 
     try:

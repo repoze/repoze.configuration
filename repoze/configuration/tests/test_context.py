@@ -58,13 +58,20 @@ class TestContext(unittest.TestCase):
         result = context.resolve(':fixturefunc')
         self.assertEqual(result, fixturefunc)
 
-    def test_resolve_relative_startswith_dor(self):
+    def test_resolve_relative_startswith_dot(self):
         from repoze.configuration import tests
         from repoze.configuration.tests.fixtures import fixturefunc
         context = self._makeOne()
         context.stack.append({'package':tests})
         result = context.resolve('.fixtures:fixturefunc')
         self.assertEqual(result, fixturefunc)
+
+    def test_resolve_relative_is_dot(self):
+        from repoze.configuration import tests
+        context = self._makeOne()
+        context.stack.append({'package':tests})
+        result = context.resolve('.')
+        self.assertEqual(result, tests)
         
     def test_resolve_relative_nocurrentpackage(self):
         context = self._makeOne()

@@ -28,7 +28,10 @@ class Context(object):
             if not package:
                 raise ValueError('name "%s" is irresolveable (no package)' %
                                  dottedname)
-            dottedname = package.__name__ + dottedname
+            if dottedname in ['.', ':']:
+                dottedname = package.__name__
+            else:
+                dottedname = package.__name__ + dottedname
         try:
             return pkg_resources.EntryPoint.parse(
                 'x=%s' % dottedname).load(False)

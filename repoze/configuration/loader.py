@@ -1,10 +1,10 @@
 import inspect
 import sys
 
-from yaml import Loader
+from yaml import SafeLoader
 from pkg_resources import iter_entry_points
 
-class PluginLoader(Loader):
+class PluginLoader(SafeLoader):
     EP_GROUP = 'repoze.configuration.directive'
     def __init__(self, context, stream, iter_entry_points=iter_entry_points):
         self.context = context
@@ -12,7 +12,7 @@ class PluginLoader(Loader):
             directive = point.load()
             self.add_constructor('!' + point.name, wrap_directive(directive))
         self.add_constructor('tag:yaml.org,2002:str', self.interpolate_str)
-        Loader.__init__(self, stream)
+        SafeLoader.__init__(self, stream)
 
     def interpolate_str(self, loader, node):
         value = loader.construct_scalar(node)

@@ -23,6 +23,12 @@ class TestContext(unittest.TestCase):
         result = context.interpolate('Here is %(here)s, there is %(there)s')
         self.assertEqual(result, 'Here is /here, there is /there')
 
+    def test_interpolate_nothing_to_interpolate(self):
+        registry = {'here':'/here', 'there':'/there'}
+        context = self._makeOne(registry)
+        result = context.interpolate('Here is %(here')
+        self.assertEqual(result, 'Here is %(here')
+
     def test_action(self):
         context = self._makeOne()
         context.action({'discriminator':'discriminator',

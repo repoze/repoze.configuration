@@ -4,6 +4,8 @@ repoze.configuration Changelog
 Next release
 ------------
 
+- Ignore import errors when trying to resolve entry point loads.
+
 - Add a ``popvalue`` method to the context; it works like ``getvalue``
   except it pops the value out of the structure supplied instead of
   just getting it.

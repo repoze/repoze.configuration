@@ -9,8 +9,12 @@ class PluginLoader(SafeLoader):
     def __init__(self, context, stream, iter_entry_points=iter_entry_points):
         self.context = context
         for point in list(iter_entry_points(self.EP_GROUP)):
-            directive = point.load()
-            self.add_constructor('!' + point.name, wrap_directive(directive))
+            try:
+                directive = point.load()
+                self.add_constructor('!' + point.name,
+                                     wrap_directive(directive))
+            except ImportError:
+                pass
         self.add_constructor('tag:yaml.org,2002:str', self.interpolate_str)
         SafeLoader.__init__(self, stream)
 

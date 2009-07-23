@@ -4,7 +4,6 @@ from repoze.configuration.loader import PluginLoader
 
 import os
 import re
-import sys
 
 _KEYCRE = re.compile(r"%\(([^)]*)\)s")
 
@@ -95,6 +94,15 @@ class Context(object):
 
     def getvalue(self, structure, name, default=None, type=basestring):
         value = structure.get(name, default)
+        if value is default:
+            return default
+        if not isinstance(value, type):
+            raise ValueError('"%s" attribute is not a %s: %r' % (
+                name, type.__name__, value))
+        return value
+
+    def popvalue(self, structure, name, default=None, type=basestring):
+        value = structure.pop(name, default)
         if value is default:
             return default
         if not isinstance(value, type):

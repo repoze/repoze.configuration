@@ -4,6 +4,10 @@ repoze.configuration Changelog
 Next release
 ------------
 
+- Add a ``popvalue`` method to the context; it works like ``getvalue``
+  except it pops the value out of the structure supplied instead of
+  just getting it.
+
 - It was not possible to resolve the single dot ``.`` using
   repoze.configuration.context.Context.resolve to the current package.
 

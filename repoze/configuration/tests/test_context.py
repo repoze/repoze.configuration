@@ -182,6 +182,22 @@ class TestContext(unittest.TestCase):
         structure = {'a':'1'}
         self.assertEqual(context.getvalue(structure, 'a'), '1')
 
+    def test_popvalue_wrongtype(self):
+        context = self._makeOne()
+        structure = {'a':1}
+        self.assertRaises(ValueError, context.popvalue, structure, 'a')
+        
+    def test_popvalue_default(self):
+        context = self._makeOne()
+        structure = {}
+        self.assertEqual(context.popvalue(structure, 'a'), None)
+        
+    def test_popvalue(self):
+        context = self._makeOne()
+        structure = {'a':'1'}
+        self.assertEqual(context.popvalue(structure, 'a'), '1')
+        self.assertEqual(structure, {})
+
     def test_call_later(self):
         context = self._makeOne()
         class Callback:

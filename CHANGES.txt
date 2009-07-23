@@ -7,6 +7,12 @@ Next release
 - It was not possible to resolve the single dot ``.`` using
   repoze.configuration.context.Context.resolve to the current package.
 
+- Using a Python %(interpolation)s marker in any string value allows
+  you to resolve expand names from the registry.
+
+- Use pyyaml's SafeLoader rather than Loader: we don't really need to
+  be able to construct arbitrary Python objects.
+
 0.2 (2009-07-13)
 ----------------
 

@@ -8,7 +8,9 @@ Next release
   repoze.configuration.context.Context.resolve to the current package.
 
 - Using a Python %(interpolation)s marker in any string value allows
-  you to resolve expand names from the registry.
+  you to replace values in strings.  For example, using "%(here)s" in
+  a string value would attempt to resolve the name "here" from the
+  registry as a key.
 
 - Use pyyaml's SafeLoader rather than Loader: we don't really need to
   be able to construct arbitrary Python objects.

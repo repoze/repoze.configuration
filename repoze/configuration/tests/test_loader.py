@@ -5,101 +5,128 @@ class TestPluginLoader(unittest.TestCase):
         from repoze.configuration.loader import PluginLoader
         return PluginLoader
 
-    def _makeOne(self, context, stream):
-        return self._getTargetClass()(context, stream)
+    def _makeOne(self, context, stream, iter):
+        return self._getTargetClass()(context, stream, iter)
 
     def test_ctor(self):
         import os
         from repoze.configuration.tests import fixtures
         directory = os.path.dirname(os.path.abspath(fixtures.__file__))
         file = os.path.join(directory, 'configure.yml')
-        loader = self._makeOne(None, open(file))
-        # doesnt blow up
+        def directive(context, structure):
+            return 'success'
+        point = DummyPoint(directive)
+        def iter_entry_points(group, suffix=None):
+            yield point
+        context = DummyContext()
+        loader = self._makeOne(context, open(file), iter_entry_points)
+        self.assertEqual(loader.context, context)
+        self.assertEqual(loader.yaml_constructors['!point'].wrapped, directive)
 
-class Test_ep_multi_constructor(unittest.TestCase):
-    def _callFUT(self, loader, suffix, node, iterator=None):
-        from repoze.configuration.loader import ep_multi_constructor
-        return ep_multi_constructor(loader, suffix, node, iterator)
+    def test_interpolate_str(self):
+        from yaml.nodes import ScalarNode
+        import StringIO
+        context = DummyContext()
+        loader = DummyLoader(context)
+        node = ScalarNode('foo', 'scalar')
+        f = StringIO.StringIO()
+        loader = self._makeOne(context, f, lambda *arg: ())
+        self.assertEqual(loader.interpolate_str(loader, node), 'scalar')
+        
+    def test_interpolate_str_exc(self):
+        from yaml.nodes import ScalarNode
+        import StringIO
+        context = DummyContext(interpolation_exc=True)
+        loader = DummyLoader(context)
+        node = ScalarNode('foo', 'scalar', DummyMark(), DummyMark())
+        f = StringIO.StringIO()
+        loader = self._makeOne(context, f, lambda *arg: ())
+        self.assertRaises(KeyError, loader.interpolate_str, loader, node)
 
-    def test_no_points(self):
-        self.assertRaises(ValueError, self._callFUT, None, 'notexist', None)
-
-    def test_too_many_points(self):
-        def iterator(group, name=None):
-            return [1,2,3]
-        self.assertRaises(ValueError, self._callFUT, None, 'notexist', None,
-                          iterator=iterator)
+class Test_wrap_directive(unittest.TestCase):
+    def _callFUT(self, point):
+        from repoze.configuration.loader import wrap_directive
+        return wrap_directive(point)
 
     def test_directive_returns_list(self):
-        point = DummyPoint([('a', 'b')])
-        def iterator(group, name=None):
-            return [point]
+        directive = DummyDirective([('a', 'b')])
+        constructor = self._callFUT(directive)
         node = DummyNode()
         context = DummyContext()
         loader = DummyLoader(context)
-        self._callFUT(loader, 'whatever', node, iterator)
+        result = constructor(loader, node)
         self.assertEqual(context.actions, [(('a', 'b'), node)] )
 
     def test_directive_returns_dict(self):
-        point = DummyPoint({'a':1})
-        def iterator(group, name=None):
-            return [point]
+        directive = DummyDirective({'a':'1'})
+        constructor = self._callFUT(directive)
         node = DummyNode()
         context = DummyContext()
         loader = DummyLoader(context)
-        self._callFUT(loader, 'whatever', node, iterator)
-        self.assertEqual(context.actions, [({'a':1}, node)] )
+        result = constructor(loader, node)
+        self.assertEqual(context.actions, [({'a':'1'}, node)] )
 
     def test_withexception(self):
-        point = DummyPoint([('a', 'b')], raise_exc=True)
-        def iterator(group, name=None):
-            return [point]
+        directive = DummyDirective([('a', 'b')], raise_exc=True)
+        constructor = self._callFUT(directive)
         node = DummyNode()
         context = DummyContext()
         loader = DummyLoader(context)
-        self.assertRaises(KeyError, self._callFUT, loader, 'whatever',
-                          node, iterator)
+        self.assertRaises(KeyError, constructor, loader, node)
 
     def test_construct_mapping_uses_deep(self):
-        point = DummyPoint({'a':1})
-        def iterator(group, name=None):
-            return [point]
+        directive = DummyDirective({'a':1})
+        constructor = self._callFUT(directive)
         node = DummyNode('mapping')
         context = DummyContext()
         loader = DummyLoader(context)
-        self._callFUT(loader, 'whatever', node, iterator)
+        constructor(loader, node)
         self.assertEqual(context.actions, [({'a':1}, node)] )
         self.assertEqual(loader.deep, True)
 
-
 class DummyContext:
-    def __init__(self):
+    def __init__(self, interpolation_exc=False):
         self.actions = []
+        self.interpolation_exc = interpolation_exc
     def action(self, info, node):
         self.actions.append((info, node))
+    def interpolate(self, value):
+        if self.interpolation_exc:
+            raise KeyError(value)
+        return value
         
 class DummyPoint:
+    name = 'point'
+    def __init__(self, directive):
+        self.directive = directive
+
+    def load(self):
+        return self.directive
+
+class DummyDirective:
     def __init__(self, result, raise_exc=False):
         self.result = result
         self.raise_exc = raise_exc
-
-    def load(self):
-        return self
-
+        
     def __call__(self, context, structure):
         if self.raise_exc:
             raise KeyError('yo')
         return self.result
+    
 
 class DummyLoader:
     def __init__(self, context):
         self.context = context
+
     def construct_theid(self, node):
         return {}
 
     def construct_mapping(self, node, deep=False):
         self.deep = deep
         return {}
+
+    def construct_scalar(self, node):
+        return 'scalar'
 
 class DummyMark:
     line = 1

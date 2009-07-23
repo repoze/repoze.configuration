@@ -3,6 +3,10 @@ import pkg_resources
 from repoze.configuration.loader import PluginLoader
 
 import os
+import re
+import sys
+
+_KEYCRE = re.compile(r"%\(([^)]*)\)s|.")
 
 class Context(object):
     def __init__(self, registry):
@@ -10,6 +14,16 @@ class Context(object):
         self.actions = []
         self.stack = []
         self.discriminators = {}
+
+    def interpolate(self, value):
+        def _interpolation_replace(match):
+            s = match.group(1)
+            if s is None:
+                return match.group()
+            else:
+                return "%%(%s)s" % s
+        value = _KEYCRE.sub(_interpolation_replace, value)
+        return value % self.registry
 
     def action(self, info, node):
         discriminator = info['discriminator']

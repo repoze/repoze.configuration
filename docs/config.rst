@@ -74,6 +74,11 @@ may not return the same discriminator without the system detecting a
 conflict, and raising an error unless the directive is an override
 (see :ref:`include_override`).
 
+If a directive returns a dictionary (or a sequence of dictionaries,
+one of) which contains an ``override`` key, and the ``override`` key
+is true, it means that the directive should override any existing
+registration, even if it conflicts with an existing registration.
+
 A directive may also return ``None``, in which case no deferred
 callback is performed, nor is a discriminator registered for the
 directive.

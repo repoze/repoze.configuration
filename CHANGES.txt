@@ -4,6 +4,11 @@ repoze.configuration Changelog
 Next release
 ------------
 
+- Make discriminator conflict detection actually work.
+
+- Show actual lines from conflicting files when possible during a
+  discriminator conflict.
+
 - Ignore import errors when trying to resolve entry point loads.
 
 - Add a ``popvalue`` method to the context; it works like ``getvalue``

@@ -29,9 +29,10 @@ class Context(object):
             if discriminator in self.discriminators:
                 conflicting_action = self.discriminators[discriminator]
                 raise ConfigurationConflict(node, conflicting_action.node)
-                
-        self.discriminators
-        self.actions.append(Action(discriminator, callback, node))
+
+        action = Action(discriminator, callback, node)
+        self.actions.append(action)
+        self.discriminators[discriminator] = action
 
     def resolve(self, dottedname):
         if dottedname.startswith('.') or dottedname.startswith(':'):
@@ -132,19 +133,29 @@ class ConfigurationConflict(Exception):
 
     def __str__(self):
         message = []
-        message.append('Conflicting declarations: ')
+        message.append('Conflicting declarations:')
         message.append(self._lineinfo(self.node1))
         message.append('conflicts with')
         message.append(self._lineinfo(self.node2))
-        return '\n'.join(message)
+        return '\n\n'.join(message)
 
     def _lineinfo(self, node):
-        msg = ('lines %s:%s-%s:%s of file "%s"' % (
-            node.start_mark.line,
-            node.start_mark.column,
-            node.end_mark.line,
-            node.end_mark.column,
-            node.start_mark.name,
+        start_mark = node.start_mark
+        end_mark = node.end_mark
+        filename = start_mark.name
+        try:
+            f = open(filename, 'r')
+            f.seek(start_mark.index)
+            data = f.read(end_mark.index - start_mark.index) + 'in '
+        except (OSError, IOError):
+            data = ''
+        msg = ('%slines %s:%s-%s:%s of file "%s"' % (
+            data,
+            start_mark.line,
+            start_mark.column,
+            end_mark.line,
+            end_mark.column,
+            start_mark.name,
             )
         )
         return msg

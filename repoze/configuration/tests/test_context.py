@@ -38,6 +38,8 @@ class TestContext(unittest.TestCase):
         self.assertEqual(action.discriminator, 'discriminator')
         self.assertEqual(action.callback, 'callback')
         self.assertEqual(action.node, 'node')
+        self.assertEqual(context.discriminators['discriminator'],
+                         context.actions[0])
 
     def test_action_withconflict(self):
         from repoze.configuration.context import ConfigurationConflict
@@ -245,13 +247,63 @@ class TestConfigurationConflict(unittest.TestCase):
         error = self._getTargetClass()(node1, node2)
         return error
 
-    def test_ctor(self):
+    def test_ctor_no_file(self):
         node1 = DummyNode()
         node2 = DummyNode()
         error = self._makeOne(node1, node2)
         self.assertEqual(error.node1, node1)
         self.assertEqual(error.node2, node2)
-        self.failUnless(error.msg.startswith('Conflicting declarations'))
+        lines = error.msg.split('\n')
+        self.assertEqual(len(lines), 7)
+        self.assertEqual(lines[0], 'Conflicting declarations:')
+        self.assertEqual(lines[1], '')
+        self.assertEqual(lines[2], 'lines 1:1-1:1 of file "dummy"')
+        self.assertEqual(lines[3], '')
+        self.assertEqual(lines[4], 'conflicts with')
+        self.assertEqual(lines[5], '')
+        self.assertEqual(lines[6], 'lines 1:1-1:1 of file "dummy"')
+
+    def test_ctor_with_file(self):
+        import os
+        here = os.path.normpath(os.path.dirname(__file__))
+        fixtures = os.path.join(here, 'fixtures')
+
+        node1 = DummyNode()
+        node2 = DummyNode()
+
+        node1.start_mark.line = 1
+        node1.end_mark.line = 2
+        node1.start_mark.index = 0
+        node1.end_mark.index = 50
+        file1 = os.path.join(fixtures, 'conflict1.yml')
+        node1.start_mark.name = file1
+
+        node2.end_mark.line = 1
+        node2.end_mark.line = 2
+        node2.start_mark.index = 0
+        node2.end_mark.index = 50
+        file2 = os.path.join(fixtures, 'conflict2.yml')
+        node2.start_mark.name = file2
+
+        error = self._makeOne(node1, node2)
+
+        self.assertEqual(error.node1, node1)
+        self.assertEqual(error.node2, node2)
+
+        lines = error.msg.split('\n')
+        self.assertEqual(len(lines), 11)
+        self.assertEqual(lines[0], 'Conflicting declarations:')
+        self.assertEqual(lines[1], '')
+        self.assertEqual(lines[2], '--- !abc')
+        self.assertEqual(lines[3], 'foo: 1')
+        self.assertEqual(lines[4], 'in lines 1:1-2:1 of file "%s"' % file1)
+        self.assertEqual(lines[5], '')
+        self.assertEqual(lines[6], 'conflicts with')
+        self.assertEqual(lines[7], '')
+        self.assertEqual(lines[8], '--- !abc')
+        self.assertEqual(lines[9], 'foo: 1')
+        self.assertEqual(lines[10], 'in lines 1:1-2:1 of file "%s"' % file2)
+
 
 class DummyMark:
     line = 1
@@ -259,8 +311,9 @@ class DummyMark:
     name = 'dummy'
 
 class DummyNode:
-    start_mark = DummyMark()
-    end_mark = DummyMark()
+    def __init__(self):
+        self.start_mark = DummyMark()
+        self.end_mark = DummyMark()
 
 class DummyAction:
     executed = False

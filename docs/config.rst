@@ -17,6 +17,7 @@ A :term:`directive` is a callable object that is registered as a
 setuptools entry point.  Here's an example directive:
 
 .. code-block:: python
+   :linenos:
 
    def boolean(val):
        if isinstance(val, basestring):
@@ -75,9 +76,21 @@ conflict, and raising an error unless the directive is an override
 (see :ref:`include_override`).
 
 If a directive returns a dictionary (or a sequence of dictionaries,
-one of) which contains an ``override`` key, and the ``override`` key
+any of) which contains an ``override`` key, and the ``override`` key
 is true, it means that the directive should override any existing
 registration, even if it conflicts with an existing registration.
+This is meant to allow you to write directives which, for example,
+might contain an optional "override" key like so:
+
+.. code-block: text
+   :linenos:
+
+   --- !foo
+   override: true
+
+If you parse this out of the structure and return it in a dictionary
+as a true or false value, you can allow users to override conflicting
+declarations for your custom directives as necessary.
 
 A directive may also return ``None``, in which case no deferred
 callback is performed, nor is a discriminator registered for the
@@ -93,6 +106,7 @@ provides a discriminator might have an "entry_points" argument like
 so:
 
 .. code-block:: python
+   :linenos:
 
    def setup(
        ....
@@ -113,6 +127,7 @@ Something that feeds the directive defined inside the first example in
 This YAML config file might look like so:
 
 .. code-block:: text
+   :linenos:
 
    --- !appsettings
    charset: utf-8
@@ -138,6 +153,7 @@ least if the directive's discriminators don't conflict), and calls to
 as many directives as necessary, e.g.:
 
 .. code-block:: text
+   :linenos:
 
    --- !somedirective
    a = 1
@@ -156,6 +172,7 @@ directive can be chosen arbitrarily.  For example, the "structure"
 provided to the following "!listdirective" will be a list.
 
 .. code-block:: text
+   :linenos:
 
    --- !listdirective
    - milk
@@ -183,6 +200,7 @@ Using ``repoze.configuration.execute``
 filename is found in the current working directory.
 
 .. code-block:: python
+   :linenos:
 
    >>> # load configuration without a package via an absolute path
    >>> from repoze.configuration import execute
@@ -199,6 +217,7 @@ populated registry dictionary by referring to the context's
 ``registry`` attribute:
 
 .. code-block:: python
+   :linenos:
 
    >>> # load configuration without a package via an absolute path
    >>> from repoze.configuration import load
@@ -218,6 +237,7 @@ filename is found in the current working directory.
 
 
 .. code-block:: python
+   :linenos:
 
    >>> # load configuration without a package via an absolute path
    >>> from repoze.configuration import load

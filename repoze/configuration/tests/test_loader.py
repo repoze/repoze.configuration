@@ -8,7 +8,22 @@ class TestPluginLoader(unittest.TestCase):
     def _makeOne(self, context, stream, iter):
         return self._getTargetClass()(context, stream, iter)
 
-    def test_ctor(self):
+    def test_ctor_load_import_error(self):
+        import os
+        from repoze.configuration.tests import fixtures
+        directory = os.path.dirname(os.path.abspath(fixtures.__file__))
+        file = os.path.join(directory, 'configure.yml')
+        def directive(context, structure):
+            return 'success'
+        point = DummyPoint(directive, raise_load_exc=True)
+        def iter_entry_points(group, suffix=None):
+            yield point
+        context = DummyContext()
+        loader = self._makeOne(context, open(file), iter_entry_points)
+        self.assertEqual(loader.context, context)
+        self.failIf('!point' in loader.yaml_constructors) # doesnt blow up
+
+    def test_ctor_ok(self):
         import os
         from repoze.configuration.tests import fixtures
         directory = os.path.dirname(os.path.abspath(fixtures.__file__))
@@ -97,10 +112,13 @@ class DummyContext:
         
 class DummyPoint:
     name = 'point'
-    def __init__(self, directive):
+    def __init__(self, directive, raise_load_exc=False):
         self.directive = directive
+        self.raise_load_exc = raise_load_exc
 
     def load(self):
+        if self.raise_load_exc:
+            raise ImportError('foo')
         return self.directive
 
 class DummyDirective:

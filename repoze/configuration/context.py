@@ -25,7 +25,10 @@ class Context(object):
     def action(self, info, node):
         discriminator = info['discriminator']
         callback = info['callback']
-        if self.stack and not self.stack[-1]['override']:
+        override = info.get('override')
+        stack_override = self.stack and self.stack[-1]['override']
+        effective_override = override or stack_override
+        if not effective_override:
             if discriminator in self.discriminators:
                 conflicting_action = self.discriminators[discriminator]
                 raise ConfigurationConflict(node, conflicting_action.node)

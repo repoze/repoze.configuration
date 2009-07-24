@@ -52,6 +52,36 @@ class TestContext(unittest.TestCase):
                            'callback':'callback'},
                           DummyNode())
 
+    def test_action_withconflict_local_override_no_stack_override(self):
+        context = self._makeOne()
+        context.discriminators['discriminator'] = DummyAction()
+        context.stack = [{'override':False}]
+        context.action({'discriminator':'discriminator',
+                        'callback':'callback', 'override':True},
+                       'node')
+        self.assertEqual(len(context.actions), 1)
+        action = context.actions[0]
+        self.assertEqual(action.discriminator, 'discriminator')
+        self.assertEqual(action.callback, 'callback')
+        self.assertEqual(action.node, 'node')
+        self.assertEqual(context.discriminators['discriminator'],
+                         context.actions[0])
+
+    def test_action_withconflict_stack_override_no_local_override(self):
+        context = self._makeOne()
+        context.discriminators['discriminator'] = DummyAction()
+        context.stack = [{'override':True}]
+        context.action({'discriminator':'discriminator',
+                        'callback':'callback'},
+                       'node')
+        self.assertEqual(len(context.actions), 1)
+        action = context.actions[0]
+        self.assertEqual(action.discriminator, 'discriminator')
+        self.assertEqual(action.callback, 'callback')
+        self.assertEqual(action.node, 'node')
+        self.assertEqual(context.discriminators['discriminator'],
+                         context.actions[0])
+
     def test_resolve_absolute(self):
         from repoze.configuration.tests.fixtures import fixturefunc
         context = self._makeOne()

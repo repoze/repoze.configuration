@@ -1,8 +1,8 @@
 repoze.configuration Changelog
 ==============================
 
-Next release
-------------
+0.3 (2009-07-24)
+----------------
 
 - Backwards incompatibility: directives must now accept three
   arguments: context, structure, and node (previously they had only

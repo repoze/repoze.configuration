@@ -4,6 +4,7 @@ from repoze.configuration.loader import PluginLoader
 
 import os
 import re
+import sys
 
 _KEYCRE = re.compile(r"%\(([^)]*)\)s")
 
@@ -126,7 +127,13 @@ class Action(object):
         self.node = node
         
     def execute(self):
-        self.callback()
+        try:
+            self.callback()
+        except Exception, why:
+            exc_info = sys.exc_info()
+            msg = 'While executing %s' % lineinfo(self.node)
+            why.args += (msg,)
+            raise exc_info[0], why, exc_info[2]
 
 class ConfigurationConflict(Exception):
     def __init__(self, node1, node2):
@@ -137,29 +144,28 @@ class ConfigurationConflict(Exception):
     def __str__(self):
         message = []
         message.append('Conflicting declarations:')
-        message.append(self._lineinfo(self.node1))
+        message.append(lineinfo(self.node1))
         message.append('conflicts with')
-        message.append(self._lineinfo(self.node2))
+        message.append(lineinfo(self.node2))
         return '\n\n'.join(message)
 
-    def _lineinfo(self, node):
-        start_mark = node.start_mark
-        end_mark = node.end_mark
-        filename = start_mark.name
-        try:
-            f = open(filename, 'r')
-            f.seek(start_mark.index)
-            data = f.read(end_mark.index - start_mark.index) + 'in '
-        except (OSError, IOError):
-            data = ''
-        msg = ('%slines %s:%s-%s:%s of file "%s"' % (
-            data,
-            start_mark.line,
-            start_mark.column,
-            end_mark.line,
-            end_mark.column,
-            start_mark.name,
-            )
+def lineinfo(node):
+    start_mark = node.start_mark
+    end_mark = node.end_mark
+    filename = start_mark.name
+    try:
+        f = open(filename, 'r')
+        f.seek(start_mark.index)
+        data = f.read(end_mark.index - start_mark.index) + 'in '
+    except (OSError, IOError):
+        data = ''
+    msg = ('%slines %s:%s-%s:%s of file "%s"' % (
+        data,
+        start_mark.line,
+        start_mark.column,
+        end_mark.line,
+        end_mark.column,
+        start_mark.name,
         )
-        return msg
-
+    )
+    return msg

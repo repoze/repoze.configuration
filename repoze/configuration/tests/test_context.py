@@ -268,6 +268,15 @@ class TestAction(unittest.TestCase):
         action.execute()
         self.assertEqual(callback.called, True)
 
+    def test_execute_exception(self):
+        class Callback:
+            def __call__(self):
+                raise ValueError('foo')
+        callback = Callback()
+        node = DummyNode()
+        action = self._makeOne('discriminator', callback, node)
+        self.assertRaises(ValueError, action.execute)
+
 class TestConfigurationConflict(unittest.TestCase):
     def _getTargetClass(self):
         from repoze.configuration.context import ConfigurationConflict

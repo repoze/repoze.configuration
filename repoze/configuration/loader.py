@@ -52,7 +52,14 @@ def wrap_directive(directive):
         context = loader.context
 
         try:
-            infos = directive(context, structure)
+            # XXX this try/except should die
+            try:
+                infos = directive(context, structure, node=node)
+            except TypeError, why:
+                if 'exactly' in str(why) or 'unexpected keyword' in str(why):
+                    infos = directive(context, structure)
+                else:
+                    raise
         except Exception, why:
             exc_info = sys.exc_info()
             msg = ('(while processing lines %s:%s-%s:%s of file "%s")' % (

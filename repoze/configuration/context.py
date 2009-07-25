@@ -8,6 +8,9 @@ import sys
 
 _KEYCRE = re.compile(r"%\(([^)]*)\)s")
 
+class ConfigurationError(Exception):
+    pass
+
 class Context(object):
     def __init__(self, registry):
         self.registry = registry
@@ -37,6 +40,10 @@ class Context(object):
         action = Action(discriminator, callback, node)
         self.actions.append(action)
         self.discriminators[discriminator] = action
+
+    def error(self, node, msg):
+        msg = '%s\n%s' % (msg , lineinfo(node))
+        raise ConfigurationError(msg)
 
     def resolve(self, dottedname):
         if dottedname.startswith('.') or dottedname.startswith(':'):

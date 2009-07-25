@@ -82,6 +82,12 @@ class TestContext(unittest.TestCase):
         self.assertEqual(context.discriminators['discriminator'],
                          context.actions[0])
 
+    def test_error(self):
+        from repoze.configuration.context import ConfigurationError
+        context = self._makeOne()
+        node = DummyNode()
+        self.assertRaises(ConfigurationError, context.error, node, 'message')
+
     def test_resolve_absolute(self):
         from repoze.configuration.tests.fixtures import fixturefunc
         context = self._makeOne()

@@ -1,72 +1,80 @@
 import unittest
 
 class TestInclude(unittest.TestCase):
-    def _callFUT(self, context, structure, node):
+    def _callFUT(self, declaration):
         from repoze.configuration.directives import include
-        return include(context, structure, node)
+        return include(declaration)
 
     def test_bad_structure(self):
-        context = DummyContext()
-        structure = 'abc'
-        node = DummyNode()
-        self.assertRaises(ValueError, self._callFUT, context, structure, node)
+        declaration = DummyDeclaration(badstructure=True)
+        self.assertRaises(ValueError, self._callFUT, declaration)
 
-    def test_diff(self):
-        context = DummyContext(['123'])
-        structure = {}
-        node = DummyNode()
-        self.assertRaises(ValueError, self._callFUT, context, structure, node)
+    def test_expect_names(self):
+        declaration = DummyDeclaration(diff=True)
+        self.assertRaises(ValueError, self._callFUT, declaration)
         
     def test_package_not_none_filename_none(self):
-        context = DummyContext()
         structure = {'package':'here'}
-        node = DummyNode()
-        self._callFUT(context, structure, node)
-        self.assertEqual(context.loaded, ('configure.yml', 'here', False))
+        declaration = DummyDeclaration(structure=structure)
+        self._callFUT(declaration)
+        self.assertEqual(declaration.context.loaded,
+                         ('configure.yml', 'here', False))
 
     def test_package_not_none_filename_not_none(self):
-        context = DummyContext()
         structure = {'package':'here', 'filename':'here.yml'}
-        node = DummyNode()
-        self._callFUT(context, structure, node)
-        self.assertEqual(context.loaded, ('here.yml', 'here', False))
+        declaration = DummyDeclaration(structure=structure)
+        self._callFUT(declaration)
+        self.assertEqual(declaration.context.loaded,
+                         ('here.yml', 'here', False))
 
     def test_package_none_filename_none(self):
-        context = DummyContext()
         structure = {}
-        node = DummyNode()
-        self._callFUT(context, structure, node)
-        self.assertEqual(context.loaded, ('configure.yml', 'package', False))
+        declaration = DummyDeclaration(structure=structure)
+        self._callFUT(declaration)
+        self.assertEqual(
+            declaration.context.loaded, ('configure.yml', 'package', False))
 
     def test_package_none_filename_not_none(self):
-        context = DummyContext()
         structure = {'filename':'here.yml'}
-        node = DummyNode()
-        self._callFUT(context, structure, node)
-        self.assertEqual(context.loaded, ('here.yml', 'package', False))
+        declaration = DummyDeclaration(structure=structure)
+        self._callFUT(declaration)
+        self.assertEqual(declaration.context.loaded,
+                         ('here.yml', 'package', False))
 
     def test_withoverride(self):
-        context = DummyContext()
         structure = {'filename':'here.yml', 'override':True}
-        node = DummyNode()
-        self._callFUT(context, structure, node)
-        self.assertEqual(context.loaded, ('here.yml', 'package', True))
+        declaration = DummyDeclaration(structure=structure)
+        self._callFUT(declaration)
+        self.assertEqual(declaration.context.loaded,
+                         ('here.yml', 'package', True))
 
-class DummyContext:
-    def __init__(self, diff=None):
-        if diff is None:
-            diff = []
-        self.diff = diff
-    
-    def getvalue(self, structure, name, default=None):
-        return structure.get(name, default)
+class DummyDeclaration:
+    def __init__(self, **kw):
+        self.diff = kw.get('diff', False)
+        self.structure = kw.get('structure', {})
+        self.badstructure = kw.get('badstructure', False)
+        self.context = DummyContext()
+        self.__dict__.update(kw)
 
-    def diffnames(self, structure, names):
-        return self.diff
+    def expect(self, typ, expected_names=()):
+        if self.badstructure:
+            raise ValueError
+        if self.diff:
+            raise ValueError
+
+    def getvalue(self, name, default=None, pop=False):
+        return self.structure.get(name, default)
+
+    string = getvalue
 
     def resolve(self, dottedname):
         return dottedname
 
+    def error(self, node, msg):
+        raise ValueError(node, msg)
+    
+class DummyContext:
+    loaded = None
     def current_package(self):
         return 'package'
 
@@ -76,8 +84,3 @@ class DummyContext:
     def load(self, filename, package, override):
         self.loaded = (filename, package, override)
 
-    def error(self, node, msg):
-        raise ValueError(node, msg)
-    
-class DummyNode:
-    pass

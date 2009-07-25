@@ -19,66 +19,79 @@ setuptools entry point.  Here's an example directive:
 .. code-block:: python
    :linenos:
 
-   def boolean(val):
-       if isinstance(val, basestring):
-           if val.lower() in ('t', 'true', 'yes', 'on'):
-               return True
-       return bool(val)
-
-   def appsettings(context, structure, node):
-       if not isinstance(structure, dict):
-            context.error(node, '"appsettings" section must be a mapping in '
-                                'YAML')
-       charset = structure.get('charset', 'utf-8')
-       debug_mode = boolean(structure.get('debug_mode', None))
+   def appsettings(declaration):
+       expect_names = ['charset', 'debug_mode']
+       declaration.expect(dict, expect_names=expect_names)
+       charset = declaration.string('charset', 'utf-8')
+       debug_mode = declaration.boolean('debug_mode', False)
        def callback():
-           context.registry['charset'] = charset
-           contex.registry['debug_mode'] = debug_mode
-       discriminator = 'appsettings'
-       return [ {'discriminator':discriminator, 'callback':callback} ]
+           declaration.registry['charset'] = charset
+           declaration.registry['debug_mode'] = debug_mode
+       declaration.action(callback, discriminator='appsettings')
 
-A :mod:`repoze.configuration` directive must accept a "context" object
-(a :mod:`repoze-plugin` ``repoze.configuration.Context`` instance,
-which by default happens to have a dictionary as its ``registry``
-attribute), a "structure", and a YAML node object (usually used for
-error reporting).  The structure is data that is parsed from a YAML
-section in the configuration file.  It usually a mapping, but can also
-be a sequence or a scalar.  See the :term:`YAML` documentation for
-more information about allowable types within a YAML "document".
+A :mod:`repoze.configuration` directive must accept a "declaration"
+object.  A declaration object represents the configuration file info
+that calls a specific directive.  It has the following useful
+attributes:
 
-A :mod:`repoze.configuration` directive must return either a single
-dictionary, a sequence of dictionaries or ``None``.  If the directive
-returns a dictionary, it must contain the keys ``discriminator`` and
-``callback``.  If the directive returns a sequence, the sequence must
-consist entirely of dictionaries and each dictionary in the sequence
-must contain the keys ``discriminator`` and ``callback``
+structure
+
+  The Python data structure represented by the declaration The
+  structure is data that is parsed from a YAML section in the
+  configuration file.  It usually a mapping, but can also be a
+  sequence or a scalar.  See the :term:`YAML` documentation for more
+  information about allowable types within a YAML "document".
+
+registry
+
+  The configuration registry (a dictionary)
+
+context
+
+  An instance of ``repoze.configuration.context.Context`` representing
+  the overall meta-state for this configuration session.
+
+A declaration object also has the useful methods, such as ``action``,
+``expect``, ``getvalue``, ``boolean``, ``string``, ``integer``,
+``resolve``, ``error``, and ``call_later``.  See
+:ref:`declaration_api` for more info.
+
+The return value of a :mod:`repoze.configuration` directive is
+ignored.  It is called only for its side effects.
 
 Directives are permitted to do arbitrary things, but to be most
-effective, they should defer performing any mutation of data by
-returning a set of callbacks (the ``callback`` value within each
-dictionary returned by the directive) which actually perform "the
-work".  These callbacks will be called by :mod:`repoze.configuration`
-after all directives have been loaded and called.
+effective, they should defer performing any mutation of data directly.
+Instead a directive should inject one or more "actions" using the
+``declaration.action`` method.
 
-Each ``callback`` within the the dictionaries returned from a
-:mod:`repoze.configuration` direcive often populates the ``registry``
-dictionary attached to the context.  It is also assumed that a
-directive will use the provided "context" object as a scratchpad for
-temporary data if it needs to collaborate in some advanced way with
-other directives.  The context object is not "precious" in any way.
+Using ``declaration.action``
+----------------------------
 
-The ``discriminator`` value within a dictionary in the sequence that a
-directive returns is used to perform conflict resolution during
-deferred callback processing.  If more than one dictionary contains
-the same discriminator, an error is thrown at parse time.  In effect,
-the discriminator provides directives with cardinality: two directives
-may not return the same discriminator without the system detecting a
-conflict, and raising an error unless the directive is an override
-(see :ref:`include_override`).
+``declaration.action`` receives three values: ``callback``,
+``discriminator`` and ``override``.  The ``callback`` value should be
+a function which, when called (with no arguments) will actually
+perform "the work".  All action callbacks will be called by
+:mod:`repoze.configuration` after all directives have been loaded and
+called.  A ``callback`` passed to ``declaration.action`` often
+populates the ``registry`` dictionary attached to the context.  It is
+also assumed that a directive will use the provided
+"declaration.context" object as a scratchpad for temporary data if it
+needs to collaborate in some advanced way with other directives.  The
+context object is not "precious" in any way.
 
-If a directive returns a dictionary (or a sequence of dictionaries,
-any of) which contains an ``override`` key, and the ``override`` key
-is true, it means that the directive should override any existing
+The ``discriminator`` argument to ``declaration.action`` is optional.
+It defaults to None (meaning no discriminator is saved for this
+action).  If a non-None discriminator is passed to
+``declaration.action``, it is used to perform conflict resolution
+during deferred callback processing.  If more than one action uses the
+same discriminator, an error is thrown at parse time.  In effect, the
+discriminator provides actions with cardinality: two actions may not
+use the same discriminator without the system detecting a conflict,
+and raising an error unless the action is passed a True value for
+``override``.
+
+If the ``override`` argument to ``directive.action`` is passed a true
+value it means that the directive should override any existing
 registration, even if it conflicts with an existing registration.
 This is meant to allow you to write directives which, for example,
 might contain an optional "override" key like so:
@@ -89,13 +102,29 @@ might contain an optional "override" key like so:
    --- !foo
    override: true
 
-If you parse this out of the structure and return it in a dictionary
-as a true or false value, you can allow users to override conflicting
-declarations for your custom directives as necessary.
+For example:
 
-A directive may also return ``None``, in which case no deferred
-callback is performed, nor is a discriminator registered for the
-directive.
+.. code-block:: python
+   :linenos:
+
+   def appsettings(declaration):
+       expect_names = ['charset', 'debug_mode']
+       declaration.expect(dict, expect_names=expect_names)
+       charset = declaration.string('charset', 'utf-8')
+       debug_mode = declaration.boolean('debug_mode', False)
+       override = declaration.boolean('override', False)
+       def callback():
+           declaration.registry['charset'] = charset
+           declaration.registry['debug_mode'] = debug_mode
+       declaration.action(callback, discriminator='appsettings', 
+                          override=override)
+
+If you parse the ``override`` value out of the structure and call
+``declaration.action`` like so, you can allow users to override
+conflicting declarations for your custom directives as necessary.
+
+A directive may also just not call ``declaration.action``.  In this
+case no deferred callback is performed.
 
 Registering a Directive
 -----------------------
@@ -180,9 +209,10 @@ provided to the following "!listdirective" will be a list.
    - bread
    - eggs
 
-Each directive defined should check the "structure" type it receives
-and throw a ``ValueError`` if the type is incorrect (due to someone
-mistyping configuration, for instance).
+Each directive defined should check the "structure" type
+(``declaration.structure``) it receives and throw a ``ValueError`` if
+the type is incorrect (due to someone mistyping configuration, for
+instance).
 
 If a file cannot be recognized as valid YAML at all at load time, an
 error is thrown before any directives are called.

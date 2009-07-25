@@ -5,15 +5,16 @@ class TestContext(unittest.TestCase):
         from repoze.configuration import Context
         return Context
 
-    def _makeOne(self, registry=None):
+    def _makeOne(self, registry=None, loader=None):
         if registry is None:
             registry = {}
-        return self._getTargetClass()(registry)
+        return self._getTargetClass()(registry, loader)
 
     def test_ctor(self):
         registry = {}
         context = self._makeOne(registry)
         self.assertEqual(context.registry, registry)
+        self.assertEqual(context.loader, None)
         self.assertEqual(context.stack, [])
         self.assertEqual(context.actions, [])
 
@@ -29,15 +30,19 @@ class TestContext(unittest.TestCase):
         result = context.interpolate('Here is %(here')
         self.assertEqual(result, 'Here is %(here')
 
+    def test_interpolate_keyerror(self):
+        registry = {}
+        context = self._makeOne(registry)
+        self.assertRaises(KeyError, context.interpolate, 'Here is %(here)s')
+
     def test_action(self):
         context = self._makeOne()
-        context.action({'discriminator':'discriminator',
-                        'callback':'callback'}, 'node')
+        context.action('declaration', 'callback', discriminator='discriminator')
         self.assertEqual(len(context.actions), 1)
         action = context.actions[0]
         self.assertEqual(action.discriminator, 'discriminator')
         self.assertEqual(action.callback, 'callback')
-        self.assertEqual(action.node, 'node')
+        self.assertEqual(action.declaration, 'declaration')
         self.assertEqual(context.discriminators['discriminator'],
                          context.actions[0])
 
@@ -46,24 +51,22 @@ class TestContext(unittest.TestCase):
         context = self._makeOne()
         context.discriminators['discriminator'] = DummyAction()
         context.stack = [{'override':False}]
+        declaration = DummyDeclaration()
         self.assertRaises(ConfigurationConflict,
                           context.action,
-                          {'discriminator':'discriminator',
-                           'callback':'callback'},
-                          DummyNode())
+                          declaration, 'callback', 'discriminator')
 
     def test_action_withconflict_local_override_no_stack_override(self):
         context = self._makeOne()
         context.discriminators['discriminator'] = DummyAction()
         context.stack = [{'override':False}]
-        context.action({'discriminator':'discriminator',
-                        'callback':'callback', 'override':True},
-                       'node')
+        context.action('declaration', 'callback', discriminator='discriminator',
+                       override=True)
         self.assertEqual(len(context.actions), 1)
         action = context.actions[0]
         self.assertEqual(action.discriminator, 'discriminator')
         self.assertEqual(action.callback, 'callback')
-        self.assertEqual(action.node, 'node')
+        self.assertEqual(action.declaration, 'declaration')
         self.assertEqual(context.discriminators['discriminator'],
                          context.actions[0])
 
@@ -71,27 +74,15 @@ class TestContext(unittest.TestCase):
         context = self._makeOne()
         context.discriminators['discriminator'] = DummyAction()
         context.stack = [{'override':True}]
-        context.action({'discriminator':'discriminator',
-                        'callback':'callback'},
-                       'node')
+        context.action('declaration', 'callback', discriminator='discriminator',
+                       override=False)
         self.assertEqual(len(context.actions), 1)
         action = context.actions[0]
         self.assertEqual(action.discriminator, 'discriminator')
         self.assertEqual(action.callback, 'callback')
-        self.assertEqual(action.node, 'node')
+        self.assertEqual(action.declaration, 'declaration')
         self.assertEqual(context.discriminators['discriminator'],
                          context.actions[0])
-
-    def test_error(self):
-        from repoze.configuration.context import ConfigurationError
-        context = self._makeOne()
-        node = DummyNode()
-        self.assertRaises(ConfigurationError, context.error, node, 'message')
-
-    def test_error_node_is_None(self):
-        from repoze.configuration.context import ConfigurationError
-        context = self._makeOne()
-        self.assertRaises(ConfigurationError, context.error, None, 'message')
 
     def test_resolve_absolute(self):
         from repoze.configuration.tests.fixtures import fixturefunc
@@ -102,7 +93,7 @@ class TestContext(unittest.TestCase):
         
     def test_irrresolveable_absolute(self):
         context = self._makeOne()
-        self.assertRaises(ValueError, context.resolve,
+        self.assertRaises(ImportError, context.resolve,
             'repoze.configuration.tests.fixtures:nonexisting')
 
     def test_resolve_relative_startswith_colon(self):
@@ -130,13 +121,13 @@ class TestContext(unittest.TestCase):
         
     def test_resolve_relative_nocurrentpackage(self):
         context = self._makeOne()
-        self.assertRaises(ValueError, context.resolve, '.fixturefunc')
+        self.assertRaises(ImportError, context.resolve, '.fixturefunc')
 
     def test_irrresolveable_relative(self):
         from repoze.configuration.tests import fixtures
         context = self._makeOne()
         context.stack.append({'package':fixtures})
-        self.assertRaises(ValueError, context.resolve, ':notexisting')
+        self.assertRaises(ImportError, context.resolve, ':notexisting')
 
     def test_current_package_nostack(self):
         context = self._makeOne()
@@ -165,7 +156,7 @@ class TestContext(unittest.TestCase):
         stream = context.stream(filename)
         self.assertEqual(stream.read(), open(filename).read())
 
-    def test_path_nopackage_nocurrentpackage(self):
+    def test_stream_nopackage_nocurrentpackage(self):
         import os
         from repoze.configuration.tests import fixtures
         old_cwd = os.getcwd()
@@ -179,7 +170,7 @@ class TestContext(unittest.TestCase):
         finally:
             os.chdir(old_cwd)
         
-    def test_path_nopackage_currentpackage(self):
+    def test_stream_nopackage_currentpackage(self):
         import os
         from repoze.configuration.tests import fixtures
         context = self._makeOne()
@@ -188,6 +179,27 @@ class TestContext(unittest.TestCase):
         filename = os.path.join(fixtures, '__init__.py')
         expected = open(filename).read()
         self.assertEqual(context.stream('__init__.py').read(), expected)
+
+    def test_load_standard_loader(self):
+        def loader(context, stream):
+            context.loaded = True
+        context = self._makeOne(loader=loader)
+        from repoze.configuration.tests import fixtures
+        context.load('configure.yml', fixtures)
+        self.assertEqual(context.stack, [])
+        self.assertEqual(context.loaded, True)
+
+    def test_load_custom_loader(self):
+        def loader(context, stream):
+            context.loaded = True
+        context = self._makeOne()
+        from repoze.configuration.tests import fixtures
+        context.load('configure.yml', fixtures, loader=loader)
+        self.assertEqual(context.stack, [])
+        self.assertEqual(context.loaded, True)
+                                          
+        # doesn't blow up
+        
 
     def test_execute(self):
         registry = {}
@@ -198,64 +210,6 @@ class TestContext(unittest.TestCase):
         self.assertEqual([action.executed for action in actions], [True, True])
         self.failUnless(result is registry)
 
-    def test_load(self):
-        context = self._makeOne()
-        from repoze.configuration.tests import fixtures
-        context.load('configure.yml', fixtures)
-        # doesn't blow up
-
-    def test_diffnames(self):
-        expected = [1, 2, 3]
-        provided = [2]
-        context = self._makeOne()
-        self.assertEqual(context.diffnames(expected, provided), [1,3])
-
-    def test_getvalue_wrongtype(self):
-        context = self._makeOne()
-        structure = {'a':1}
-        self.assertRaises(ValueError, context.getvalue, structure, 'a')
-        
-    def test_getvalue_default(self):
-        context = self._makeOne()
-        structure = {}
-        self.assertEqual(context.getvalue(structure, 'a'), None)
-        
-    def test_getvalue(self):
-        context = self._makeOne()
-        structure = {'a':'1'}
-        self.assertEqual(context.getvalue(structure, 'a'), '1')
-
-    def test_popvalue_wrongtype(self):
-        context = self._makeOne()
-        structure = {'a':1}
-        self.assertRaises(ValueError, context.popvalue, structure, 'a')
-        
-    def test_popvalue_default(self):
-        context = self._makeOne()
-        structure = {}
-        self.assertEqual(context.popvalue(structure, 'a'), None)
-        
-    def test_popvalue(self):
-        context = self._makeOne()
-        structure = {'a':'1'}
-        self.assertEqual(context.popvalue(structure, 'a'), '1')
-        self.assertEqual(structure, {})
-
-    def test_call_later(self):
-        context = self._makeOne()
-        class Callback:
-            def __call__(self, *arg, **kw):
-                self.arg = arg
-                self.kw = kw
-                return True
-        callback = Callback()
-        sequence = [1,2,3]
-        deferred = context.call_later(callback, 1, 2, name=1, *sequence)
-        result = deferred()
-        self.assertEqual(result, True)
-        self.assertEqual(callback.arg, (1,2,1,2,3))
-        self.assertEqual(callback.kw, {'name':1})
-
 class TestAction(unittest.TestCase):
     def _getTargetClass(self):
         from repoze.configuration.context import Action
@@ -265,17 +219,17 @@ class TestAction(unittest.TestCase):
         return self._getTargetClass()(discriminator, callback, node)
 
     def test_ctor(self):
-        action = self._makeOne('discriminator', 'callback', 'node')
+        action = self._makeOne('discriminator', 'callback', 'declaration')
         self.assertEqual(action.discriminator, 'discriminator')
         self.assertEqual(action.callback, 'callback')
-        self.assertEqual(action.node, 'node')
+        self.assertEqual(action.declaration, 'declaration')
 
     def test_execute(self):
         class Callback:
             def __call__(self):
                 self.called = True
         callback = Callback()
-        action = self._makeOne('discriminator', callback, 'node')
+        action = self._makeOne('discriminator', callback, 'declaration')
         action.execute()
         self.assertEqual(callback.called, True)
 
@@ -284,94 +238,18 @@ class TestAction(unittest.TestCase):
             def __call__(self):
                 raise ValueError('foo')
         callback = Callback()
-        node = DummyNode()
-        action = self._makeOne('discriminator', callback, node)
+        declaration = DummyDeclaration()
+        action = self._makeOne('discriminator', callback, declaration)
         self.assertRaises(ValueError, action.execute)
-
-class TestConfigurationConflict(unittest.TestCase):
-    def _getTargetClass(self):
-        from repoze.configuration.context import ConfigurationConflict
-        return ConfigurationConflict
-
-    def _makeOne(self, node1, node2):
-        error = self._getTargetClass()(node1, node2)
-        return error
-
-    def test_ctor_no_file(self):
-        node1 = DummyNode()
-        node2 = DummyNode()
-        error = self._makeOne(node1, node2)
-        self.assertEqual(error.node1, node1)
-        self.assertEqual(error.node2, node2)
-        lines = error.msg.split('\n')
-        self.assertEqual(len(lines), 7)
-        self.assertEqual(lines[0], 'Conflicting declarations:')
-        self.assertEqual(lines[1], '')
-        self.assertEqual(lines[2], 'lines 1:1-1:1 of file "dummy"')
-        self.assertEqual(lines[3], '')
-        self.assertEqual(lines[4], 'conflicts with')
-        self.assertEqual(lines[5], '')
-        self.assertEqual(lines[6], 'lines 1:1-1:1 of file "dummy"')
-
-    def test_ctor_with_file(self):
-        import os
-        here = os.path.normpath(os.path.dirname(__file__))
-        fixtures = os.path.join(here, 'fixtures')
-
-        node1 = DummyNode()
-        node2 = DummyNode()
-
-        node1.start_mark.line = 1
-        node1.end_mark.line = 2
-        node1.start_mark.index = 0
-        node1.end_mark.index = 50
-        file1 = os.path.join(fixtures, 'conflict1.yml')
-        node1.start_mark.name = file1
-
-        node2.end_mark.line = 1
-        node2.end_mark.line = 2
-        node2.start_mark.index = 0
-        node2.end_mark.index = 50
-        file2 = os.path.join(fixtures, 'conflict2.yml')
-        node2.start_mark.name = file2
-
-        error = self._makeOne(node1, node2)
-
-        self.assertEqual(error.node1, node1)
-        self.assertEqual(error.node2, node2)
-
-        lines = error.msg.split('\n')
-        self.assertEqual(len(lines), 11)
-        self.assertEqual(lines[0], 'Conflicting declarations:')
-        self.assertEqual(lines[1], '')
-        self.assertEqual(lines[2], '--- !abc')
-        self.assertEqual(lines[3], 'foo: 1')
-        self.assertEqual(lines[4], 'in lines 1:1-2:1 of file "%s"' % file1)
-        self.assertEqual(lines[5], '')
-        self.assertEqual(lines[6], 'conflicts with')
-        self.assertEqual(lines[7], '')
-        self.assertEqual(lines[8], '--- !abc')
-        self.assertEqual(lines[9], 'foo: 1')
-        self.assertEqual(lines[10], 'in lines 1:1-2:1 of file "%s"' % file2)
-
-
-class DummyMark:
-    line = 1
-    column = 1
-    name = 'dummy'
-
-class DummyNode:
-    def __init__(self):
-        self.start_mark = DummyMark()
-        self.end_mark = DummyMark()
 
 class DummyAction:
     executed = False
     def __init__(self):
-        self.node = DummyNode()
+        self.declaration = DummyDeclaration()
 
     def execute(self):
         self.executed = True
-        
 
-        
+class DummyDeclaration:
+    lineinfo = 'lineinfo'
+    

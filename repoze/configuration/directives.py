@@ -1,17 +1,13 @@
-def include(context, structure, node):
-    if not isinstance(structure, dict):
-        context.error(node, 'Bad structure for include directive')
-
-    diff = context.diffnames(structure, ['package', 'filename', 'override'])
-    if diff:
-        context.error(node, 'Unknown key(s) in "include" directive: %r' % diff)
-
-    package = context.getvalue(structure, 'package')
+def include(declaration):
+    """ Include another YAML file """
+    names = ['package', 'filename', 'override']
+    declaration.expect(dict, expected_names=names)
+    package = declaration.string('package')
     if package is not None:
-        package = context.resolve(package)
+        package = declaration.resolve(package)
     else:
-        package = context.current_package()
-    filename = context.getvalue(structure, 'filename', 'configure.yml')
-    override = context.getvalue(structure, 'override',
-                                context.current_override())
-    context.load(filename, package, override)
+        package = declaration.context.current_package()
+    filename = declaration.string('filename', 'configure.yml')
+    override = declaration.string('override',
+                                  declaration.context.current_override())
+    declaration.context.load(filename, package, override)

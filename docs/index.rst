@@ -28,6 +28,7 @@ Table of Contents
 
    config
    directives
+   api
    glossary
 
 Indices and tables

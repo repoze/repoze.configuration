@@ -4,7 +4,12 @@ repoze.configuration Changelog
 Next release
 ------------
 
-- Allow node to be None in ``error`` method of context.
+- Totally backwards incompatible.
+
+- Instead of accepting "context", "structure" and "node", directives
+  now accept "declaration" objects.  A declaration object has most of
+  the methods that used to be supplied by the "context", and some new
+  ones.  The docs have been updated.
 
 0.3 (2009-07-24)
 ----------------

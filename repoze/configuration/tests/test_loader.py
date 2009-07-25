@@ -1,9 +1,9 @@
 import unittest
 
-class TestPluginLoader(unittest.TestCase):
+class TestYAMLPluginLoader(unittest.TestCase):
     def _getTargetClass(self):
-        from repoze.configuration.loader import PluginLoader
-        return PluginLoader
+        from repoze.configuration.loader import YAMLPluginLoader
+        return YAMLPluginLoader
 
     def _makeOne(self, context, stream, iter):
         return self._getTargetClass()(context, stream, iter)
@@ -49,6 +49,7 @@ class TestPluginLoader(unittest.TestCase):
         self.assertEqual(loader.interpolate_str(loader, node), 'scalar')
         
     def test_interpolate_str_exc(self):
+        from repoze.configuration.exceptions import ConfigurationError
         from yaml.nodes import ScalarNode
         import StringIO
         context = DummyContext(interpolation_exc=True)
@@ -56,80 +57,23 @@ class TestPluginLoader(unittest.TestCase):
         node = ScalarNode('foo', 'scalar', DummyMark(), DummyMark())
         f = StringIO.StringIO()
         loader = self._makeOne(context, f, lambda *arg: ())
-        self.assertRaises(KeyError, loader.interpolate_str, loader, node)
+        self.assertRaises(ConfigurationError,
+                          loader.interpolate_str, loader, node)
 
 class Test_wrap_directive(unittest.TestCase):
-    def _callFUT(self, point):
+    def _callFUT(self, directive):
         from repoze.configuration.loader import wrap_directive
-        return wrap_directive(point)
+        return wrap_directive(directive)
 
-    def test_directive_returns_list(self):
-        directive = DummyDirective([('a', 'b')])
-        constructor = self._callFUT(directive)
-        node = DummyNode()
-        context = DummyContext()
-        loader = DummyLoader(context)
-        result = constructor(loader, node)
-        self.assertEqual(context.actions, [(('a', 'b'), node)] )
-
-    def test_directive_returns_dict(self):
-        directive = DummyDirective({'a':'1'})
-        constructor = self._callFUT(directive)
-        node = DummyNode()
-        context = DummyContext()
-        loader = DummyLoader(context)
-        result = constructor(loader, node)
-        self.assertEqual(context.actions, [({'a':'1'}, node)] )
-
-    def test_withexception(self):
-        directive = DummyDirective([('a', 'b')], raise_exc=True)
-        constructor = self._callFUT(directive)
-        node = DummyNode()
-        context = DummyContext()
-        loader = DummyLoader(context)
-        self.assertRaises(KeyError, constructor, loader, node)
-
-    def test_construct_mapping_uses_deep(self):
-        directive = DummyDirective({'a':1})
-        constructor = self._callFUT(directive)
-        node = DummyNode('mapping')
-        context = DummyContext()
-        loader = DummyLoader(context)
-        constructor(loader, node)
-        self.assertEqual(context.actions, [({'a':1}, node)] )
-        self.assertEqual(loader.deep, True)
-
-class DummyContext:
-    def __init__(self, interpolation_exc=False):
-        self.actions = []
-        self.interpolation_exc = interpolation_exc
-    def action(self, info, node):
-        self.actions.append((info, node))
-    def interpolate(self, value):
-        if self.interpolation_exc:
-            raise KeyError(value)
-        return value
-        
-class DummyPoint:
-    name = 'point'
-    def __init__(self, directive, raise_load_exc=False):
-        self.directive = directive
-        self.raise_load_exc = raise_load_exc
-
-    def load(self):
-        if self.raise_load_exc:
-            raise ImportError('foo')
-        return self.directive
-
-class DummyDirective:
-    def __init__(self, result, raise_exc=False):
-        self.result = result
-        self.raise_exc = raise_exc
-        
-    def __call__(self, context, structure, node):
-        if self.raise_exc:
-            raise KeyError('yo')
-        return self.result
+    def test_it(self):
+        directive = DummyDirective()
+        wrapper = self._callFUT(directive)
+        self.assertEqual(wrapper.wrapped, directive)
+        loader = DummyLoader(None)
+        wrapper(loader, None)
+        self.assertEqual(directive.declaration.context, loader.context)
+        self.assertEqual(directive.declaration._loader, loader)
+        self.assertEqual(directive.declaration._node, None)
 
 class DummyLoader:
     def __init__(self, context):
@@ -145,15 +89,42 @@ class DummyLoader:
     def construct_scalar(self, node):
         return 'scalar'
 
+class DummyContext:
+    def __init__(self, interpolation_exc=False):
+        self.actions = []
+        self.interpolation_exc = interpolation_exc
+
+    def interpolate(self, value):
+        if self.interpolation_exc:
+            raise KeyError(value)
+        return value
+
+    def load(self, filename, package=None, override=False):
+        self.loaded = (filename, package, override)
+
+    def current_package(self):
+        return None
+
+    def current_override(self):
+        return False
+        
+class DummyPoint:
+    name = 'point'
+    def __init__(self, directive, raise_load_exc=False):
+        self.directive = directive
+        self.raise_load_exc = raise_load_exc
+
+    def load(self):
+        if self.raise_load_exc:
+            raise ImportError('foo')
+        return self.directive
+
 class DummyMark:
     line = 1
     column = 1
     name = 'dummy'
     
-class DummyNode:
-    def __init__(self, id='theid'):
-        self.id = id
-        self.start_mark = DummyMark()
-        self.end_mark = DummyMark()
-        
+class DummyDirective:
+    def __call__(self, declaration):
+        self.declaration = declaration
         

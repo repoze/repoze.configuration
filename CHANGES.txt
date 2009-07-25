@@ -4,6 +4,12 @@ repoze.configuration Changelog
 Next release
 ------------
 
+- Backwards incompatibility: directives must now accept three
+  arguments: context, structure, and node (previously they had only
+  accepted context and structure).
+
+- ``error`` method added to context.
+
 - Make discriminator conflict detection actually work.
 
 - Show actual lines from conflicting files when possible during a

@@ -25,9 +25,10 @@ setuptools entry point.  Here's an example directive:
                return True
        return bool(val)
 
-   def appsettings(context, structure):
+   def appsettings(context, structure, node):
        if not isinstance(structure, dict):
-            raise ValueError('"appsettings" section must be a mapping in YAML')
+            context.error(node, '"appsettings" section must be a mapping in '
+                                'YAML')
        charset = structure.get('charset', 'utf-8')
        debug_mode = boolean(structure.get('debug_mode', None))
        def callback():
@@ -39,11 +40,11 @@ setuptools entry point.  Here's an example directive:
 A :mod:`repoze.configuration` directive must accept a "context" object
 (a :mod:`repoze-plugin` ``repoze.configuration.Context`` instance,
 which by default happens to have a dictionary as its ``registry``
-attribute) and a "structure".  The structure is data that is parsed
-from a YAML section in the configuration file.  It usually a mapping,
-but can also be a sequence or a scalar.  See the :term:`YAML`
-documentation for more information about allowable types within a YAML
-"document".
+attribute), a "structure", and a YAML node object (usually used for
+error reporting).  The structure is data that is parsed from a YAML
+section in the configuration file.  It usually a mapping, but can also
+be a sequence or a scalar.  See the :term:`YAML` documentation for
+more information about allowable types within a YAML "document".
 
 A :mod:`repoze.configuration` directive must return either a single
 dictionary, a sequence of dictionaries or ``None``.  If the directive

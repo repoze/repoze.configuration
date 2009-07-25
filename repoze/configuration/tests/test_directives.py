@@ -1,48 +1,55 @@
 import unittest
 
 class TestInclude(unittest.TestCase):
-    def _callFUT(self, context, structure):
+    def _callFUT(self, context, structure, node):
         from repoze.configuration.directives import include
-        return include(context, structure)
+        return include(context, structure, node)
 
     def test_bad_structure(self):
         context = DummyContext()
         structure = 'abc'
-        self.assertRaises(ValueError, self._callFUT, context, structure)
+        node = DummyNode()
+        self.assertRaises(ValueError, self._callFUT, context, structure, node)
 
     def test_diff(self):
         context = DummyContext(['123'])
         structure = {}
-        self.assertRaises(ValueError, self._callFUT, context, structure)
+        node = DummyNode()
+        self.assertRaises(ValueError, self._callFUT, context, structure, node)
         
     def test_package_not_none_filename_none(self):
         context = DummyContext()
         structure = {'package':'here'}
-        self._callFUT(context, structure)
+        node = DummyNode()
+        self._callFUT(context, structure, node)
         self.assertEqual(context.loaded, ('configure.yml', 'here', False))
 
     def test_package_not_none_filename_not_none(self):
         context = DummyContext()
         structure = {'package':'here', 'filename':'here.yml'}
-        self._callFUT(context, structure)
+        node = DummyNode()
+        self._callFUT(context, structure, node)
         self.assertEqual(context.loaded, ('here.yml', 'here', False))
 
     def test_package_none_filename_none(self):
         context = DummyContext()
         structure = {}
-        self._callFUT(context, structure)
+        node = DummyNode()
+        self._callFUT(context, structure, node)
         self.assertEqual(context.loaded, ('configure.yml', 'package', False))
 
     def test_package_none_filename_not_none(self):
         context = DummyContext()
         structure = {'filename':'here.yml'}
-        self._callFUT(context, structure)
+        node = DummyNode()
+        self._callFUT(context, structure, node)
         self.assertEqual(context.loaded, ('here.yml', 'package', False))
 
     def test_withoverride(self):
         context = DummyContext()
         structure = {'filename':'here.yml', 'override':True}
-        self._callFUT(context, structure)
+        node = DummyNode()
+        self._callFUT(context, structure, node)
         self.assertEqual(context.loaded, ('here.yml', 'package', True))
 
 class DummyContext:
@@ -68,5 +75,9 @@ class DummyContext:
 
     def load(self, filename, package, override):
         self.loaded = (filename, package, override)
-        
+
+    def error(self, node, msg):
+        raise ValueError(node, msg)
     
+class DummyNode:
+    pass

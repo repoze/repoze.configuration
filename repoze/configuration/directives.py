@@ -1,10 +1,10 @@
-def include(context, structure):
+def include(context, structure, node):
     if not isinstance(structure, dict):
-        raise ValueError('Bad structure for include directive')
+        context.error(node, 'Bad structure for include directive')
 
     diff = context.diffnames(structure, ['package', 'filename', 'override'])
     if diff:
-        raise ValueError('Unknown key(s) in "include" directive: %r' % diff)
+        context.error(node, 'Unknown key(s) in "include" directive: %r' % diff)
 
     package = context.getvalue(structure, 'package')
     if package is not None:

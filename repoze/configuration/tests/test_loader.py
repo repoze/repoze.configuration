@@ -99,23 +99,6 @@ class Test_wrap_directive(unittest.TestCase):
         self.assertEqual(context.actions, [({'a':1}, node)] )
         self.assertEqual(loader.deep, True)
 
-    def test_3arg_directive(self):
-        directive = DummyThreeArgDirective({'a':'1'})
-        constructor = self._callFUT(directive)
-        node = DummyNode()
-        context = DummyContext()
-        loader = DummyLoader(context)
-        result = constructor(loader, node)
-        self.assertEqual(context.actions, [({'a':'1'}, node)] )
-
-    def test_3arg_directive_raises_typeerror(self):
-        directive = DummyTypeErrorDirective()
-        constructor = self._callFUT(directive)
-        node = DummyNode()
-        context = DummyContext()
-        loader = DummyLoader(context)
-        self.assertRaises(TypeError, constructor, loader, node)
-
 class DummyContext:
     def __init__(self, interpolation_exc=False):
         self.actions = []
@@ -143,17 +126,7 @@ class DummyDirective:
         self.result = result
         self.raise_exc = raise_exc
         
-    def __call__(self, context, structure):
-        if self.raise_exc:
-            raise KeyError('yo')
-        return self.result
-
-class DummyTypeErrorDirective:
     def __call__(self, context, structure, node):
-        raise TypeError('murg')
-
-class DummyThreeArgDirective(DummyDirective):
-    def __call(self, context, strucure, node):
         if self.raise_exc:
             raise KeyError('yo')
         return self.result

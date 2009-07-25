@@ -1,6 +1,11 @@
 repoze.configuration Changelog
 ==============================
 
+Next release
+------------
+
+- Allow node to be None in ``error`` method of context.
+
 0.3 (2009-07-24)
 ----------------
 

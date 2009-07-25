@@ -88,6 +88,11 @@ class TestContext(unittest.TestCase):
         node = DummyNode()
         self.assertRaises(ConfigurationError, context.error, node, 'message')
 
+    def test_error_node_is_None(self):
+        from repoze.configuration.context import ConfigurationError
+        context = self._makeOne()
+        self.assertRaises(ConfigurationError, context.error, None, 'message')
+
     def test_resolve_absolute(self):
         from repoze.configuration.tests.fixtures import fixturefunc
         context = self._makeOne()

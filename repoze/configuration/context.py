@@ -42,7 +42,8 @@ class Context(object):
         self.discriminators[discriminator] = action
 
     def error(self, node, msg):
-        msg = '%s\n%s' % (msg , lineinfo(node))
+        if node is not None:
+            msg = '%s\n%s' % (msg , lineinfo(node))
         raise ConfigurationError(msg)
 
     def resolve(self, dottedname):

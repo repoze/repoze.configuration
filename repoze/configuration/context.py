@@ -97,5 +97,6 @@ class Action(object):
         self.declaration = declaration
         
     def execute(self):
-        self.callback()
+        if self.callback is not None:
+            self.callback()
 

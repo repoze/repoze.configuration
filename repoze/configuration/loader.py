@@ -27,8 +27,8 @@ class YAMLPluginLoader(SafeLoader):
         try:
             value = self.context.interpolate(value)
         except KeyError, why:
-            msg = 'Cannot interpolate %%(%s)s\n' % why[0]
-            msg = msg + lineinfo(node)
+            li = lineinfo(node)
+            msg = 'Cannot interpolate %%(%s)s found in %s' % (why[0], li)
             raise ConfigurationError(msg)
         return value
 

@@ -200,15 +200,13 @@ def lineinfo(node):
     try:
         f = open(filename, 'r')
         f.seek(start_mark.index)
-        data = f.read(end_mark.index - start_mark.index) + 'in '
+        data = f.read(end_mark.index - start_mark.index) + ' in '
     except (OSError, IOError):
         data = ''
-    msg = ('%slines %s:%s-%s:%s of file "%s"' % (
+    msg = ('%slines %s-%s of file "%s"' % (
         data,
-        start_mark.line,
-        start_mark.column,
-        end_mark.line,
-        end_mark.column,
+        start_mark.line+1,
+        end_mark.line+1,
         start_mark.name,
         )
     )

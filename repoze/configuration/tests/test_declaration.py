@@ -186,7 +186,7 @@ class TestYAMLDeclaration(unittest.TestCase):
         node = DummyNode()
         decl = self._makeOne(context, loader, node)
         line = decl.lineinfo
-        self.assertEqual(line, 'lines 1:1-1:1 of file "dummy"')
+        self.assertEqual(line, 'lines 2-2 of file "dummy"')
 
     def test_get_structure_deep(self):
         context = DummyContext()
@@ -244,7 +244,7 @@ class Test_lineinfo(unittest.TestCase):
         self.assertEqual(len(lines), 3)
         self.assertEqual(lines[0], '--- !abc')
         self.assertEqual(lines[1], 'foo: 1')
-        self.assertEqual(lines[2], 'in lines 1:2-1:2 of file "%s"' % filename)
+        self.assertEqual(lines[2], ' in lines 2-2 of file "%s"' % filename)
 
     def test_file_exception(self):
         node = DummyNode()
@@ -252,56 +252,7 @@ class Test_lineinfo(unittest.TestCase):
 
         lines = msg.split('\n')
         self.assertEqual(len(lines), 1)
-        self.assertEqual(lines[0], 'lines 1:1-1:1 of file "dummy"')
-
-## class DummyDirective:
-##     def __init__(self, result, raise_exc=False):
-##         self.result = result
-##         self.raise_exc = raise_exc
-        
-##     def __call__(self, declaration):
-##         if self.raise_exc:
-##             raise KeyError('yo')
-##         return self.result
-
-##     def action(self, callback, discriminator=None, override=False):
-##         self.actions.append((callback, discriminator, override))
-
-##     def test_directive_calls_action(self):
-##         directive = DummyDirective([('a', 'b')])
-##         constructor = self._callFUT(directive)
-##         node = DummyNode()
-##         context = DummyContext()
-##         loader = DummyLoader(context)
-##         constructor(loader, node)
-##         self.assertEqual(context.actions, [(('a', 'b'), node)] )
-
-##     def test_directive_returns_dict(self):
-##         directive = DummyDirective({'a':'1'})
-##         constructor = self._callFUT(directive)
-##         node = DummyNode()
-##         context = DummyContext()
-##         loader = DummyLoader(context)
-##         result = constructor(loader, node)
-##         self.assertEqual(context.actions, [({'a':'1'}, node)] )
-
-##     def test_withexception(self):
-##         directive = DummyDirective([('a', 'b')], raise_exc=True)
-##         constructor = self._callFUT(directive)
-##         node = DummyNode()
-##         context = DummyContext()
-##         loader = DummyLoader(context)
-##         self.assertRaises(KeyError, constructor, loader, node)
-
-##     def test_construct_mapping_uses_deep(self):
-##         directive = DummyDirective({'a':1})
-##         constructor = self._callFUT(directive)
-##         node = DummyNode('mapping')
-##         context = DummyContext()
-##         loader = DummyLoader(context)
-##         constructor(loader, node)
-##         self.assertEqual(context.actions, [({'a':1}, node)] )
-##         self.assertEqual(loader.deep, True)
+        self.assertEqual(lines[0], 'lines 2-2 of file "dummy"')
 
 class DummyNode:
     def __init__(self, id='theid'):

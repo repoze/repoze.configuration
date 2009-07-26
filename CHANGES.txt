@@ -4,6 +4,12 @@ repoze.configuration Changelog
 Next release
 ------------
 
+- Show only line numbers in error reports on console (previously both
+  line numbers and column numbers were reported, but the column
+  numbers seem to be meaningless in most debugging scenarios).
+
+- Fix an off by one error in line number reporting in errors.
+
 - Interpolation variables now try to use the registry first, but fall
   back to "stack" values; the most important of which is ``%(here)s``;
   this interpolation variable can be used in any config file.  It will

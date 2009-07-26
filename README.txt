@@ -16,4 +16,5 @@ directive::
    --- !include
    filename = anotherfile.yml
 
-Please see docs/index.rst for more documentation.
+Please see docs/index.rst or `http://docs.repoze.org/configuration
+<http://docs.repoze.org/configuration>`_ for more documentation.

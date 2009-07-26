@@ -12,9 +12,9 @@ class TestContext(unittest.TestCase):
 
     def test_ctor(self):
         registry = {}
-        context = self._makeOne(registry)
+        context = self._makeOne(registry, 'loader')
         self.assertEqual(context.registry, registry)
-        self.assertEqual(context.loader, None)
+        self.assertEqual(context.loader, 'loader')
         self.assertEqual(context.stack, [])
         self.assertEqual(context.actions, [])
 

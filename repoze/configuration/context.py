@@ -3,14 +3,17 @@ import pkg_resources
 import re
 
 from repoze.configuration.exceptions import ConfigurationConflict
+from repoze.configuration.loader import YAMLPluginLoader
 
 _INTERP = re.compile(r"%\(([^)]*)\)s")
 
 class Context(object):
 
-    def __init__(self, registry, loader):
-        self.registry = registry
+    def __init__(self, registry, loader=None):
+        if loader is None:
+            loader = YAMLPluginLoader
         self.loader = loader
+        self.registry = registry
         self.actions = []
         self.stack = []
         self.discriminators = {}

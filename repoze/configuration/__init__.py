@@ -1,10 +1,8 @@
-from repoze.configuration.loader import YAMLPluginLoader # not an API
 from repoze.configuration.exceptions import ConfigurationError # API
 from repoze.configuration.exceptions import ConfigurationConflict # API
 from repoze.configuration.context import Context # API
 
-def load(filename='configure.yml', package=None, context=None,
-         loader=YAMLPluginLoader):
+def load(filename='configure.yml', package=None, context=None, loader=None):
     """
     You can load configuration without executing it (without calling
     any callbacks) by using the ``load`` function.  ``load`` accepts a
@@ -35,8 +33,7 @@ def load(filename='configure.yml', package=None, context=None,
     context.load(filename, package)
     return context
 
-def execute(filename='configure.yml', package=None, context=None,
-            loader=YAMLPluginLoader):
+def execute(filename='configure.yml', package=None, context=None, loader=None):
     """
     ``execute`` loads the configuration, executes the actions
     implied by the configuration, and returns a context.  After

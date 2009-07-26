@@ -28,6 +28,7 @@ Table of Contents
 
    config
    directives
+   interpolation
    api
    glossary
 

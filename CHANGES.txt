@@ -4,6 +4,8 @@ repoze.configuration Changelog
 Next release
 ------------
 
+- Add documentation about interpolation.
+
 - Show only line numbers in error reports on console (previously both
   line numbers and column numbers were reported, but the column
   numbers seem to be meaningless in most debugging scenarios).

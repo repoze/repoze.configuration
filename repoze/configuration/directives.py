@@ -1,7 +1,7 @@
 def include(declaration):
     """ Include another YAML file """
-    names = ['package', 'filename', 'override']
-    declaration.expect(dict, names=names)
+    expect_names = ['package', 'filename', 'override']
+    declaration.expect(dict, names=expect_names)
     package = declaration.string('package')
     if package is not None:
         package = declaration.resolve(package)

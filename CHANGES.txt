@@ -1,8 +1,8 @@
 repoze.configuration Changelog
 ==============================
 
-Next release
-------------
+0.4 (2009-07-25)
+----------------
 
 - Totally backwards incompatible.
 

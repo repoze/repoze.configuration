@@ -188,7 +188,7 @@ class TestYAMLDeclaration(unittest.TestCase):
         line = decl.lineinfo
         self.assertEqual(line, 'lines 1:1-1:1 of file "dummy"')
 
-    def test_structure_deep(self):
+    def test_get_structure_deep(self):
         context = DummyContext()
         loader = DummyLoader(context)
         node = DummyNode(id='deep')
@@ -197,7 +197,7 @@ class TestYAMLDeclaration(unittest.TestCase):
         self.assertEqual(result, 'deep')
         self.assertEqual(decl._structure, 'deep')
 
-    def test_structure_shallow(self):
+    def test_get_structure_shallow(self):
         context = DummyContext()
         loader = DummyLoader(context)
         node = DummyNode(id='shallow')
@@ -205,6 +205,14 @@ class TestYAMLDeclaration(unittest.TestCase):
         result = decl.structure
         self.assertEqual(result, 'shallow')
         self.assertEqual(decl._structure, 'shallow')
+
+    def test_set_structure(self):
+        context = DummyContext()
+        loader = DummyLoader(context)
+        node = DummyNode(id='shallow')
+        decl = self._makeOne(context, loader, node)
+        decl.structure = 'structure'
+        self.assertEqual(decl._structure, 'structure')
 
 class Test_lineinfo(unittest.TestCase):
     def _callFUT(self, node):

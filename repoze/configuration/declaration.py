@@ -175,8 +175,7 @@ class YAMLDeclaration(Declaration):
     def lineinfo(self):
         return lineinfo(self._node)
 
-    @property
-    def structure(self):
+    def get_structure(self):
         if self._structure is _marker:
             loader = self._loader
             structure_ctor = getattr(loader, 'construct_%s' % self._node.id)
@@ -188,6 +187,11 @@ class YAMLDeclaration(Declaration):
                 structure = structure_ctor(self._node)
             self._structure = structure
         return self._structure
+
+    def set_structure(self, structure):
+        self._structure = structure
+
+    structure = property(get_structure, set_structure)
 
 def lineinfo(node):
     start_mark = node.start_mark

@@ -21,9 +21,11 @@ class Context(object):
     def interpolate(self, value):
         def _interpolation_replace(match):
             s = match.group(1)
-            if not s in self.registry:
-                raise KeyError(s)
-            return self.registry[s]
+            if s in self.registry:
+                return self.registry[s]
+            if self.stack and s in self.stack[-1]:
+                return self.stack[-1][s]
+            raise KeyError(s)
         if '%(' in value:
             value = _INTERP.sub(_interpolation_replace, value)
         return value.encode('utf-8')
@@ -73,11 +75,23 @@ class Context(object):
             return open(filename)
         else:
             return pkg_resources.resource_stream(package.__name__, filename)
+
+    def abs_filename(self, filename, package=None):
+        if os.path.isabs(filename):
+            return filename
+        if package is None:
+            package = self.current_package()
+        if package is None:
+            return os.path.abspath(filename)
+        else:
+            return pkg_resources.resource_filename(package.__name__, filename)
         
     def load(self, filename, package, override=False, loader=None):
+        fn = self.abs_filename(filename, package)
+        here = os.path.dirname(fn)
         stream = self.stream(filename, package)
         self.stack.append({'filename':filename, 'package':package,
-                           'override':override})
+                           'override':override, 'here':here})
         if loader is None:
             loader = self.loader
         try:

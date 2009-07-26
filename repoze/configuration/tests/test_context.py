@@ -18,11 +18,25 @@ class TestContext(unittest.TestCase):
         self.assertEqual(context.stack, [])
         self.assertEqual(context.actions, [])
 
-    def test_interpolate(self):
+    def test_interpolate_from_registry(self):
         registry = {'here':'/here', 'there':'/there'}
         context = self._makeOne(registry)
         result = context.interpolate('Here is %(here)s, there is %(there)s')
         self.assertEqual(result, 'Here is /here, there is /there')
+
+    def test_interpolate_from_registry_overrides_stack(self):
+        registry = {'here':'/here', 'there':'/there'}
+        context = self._makeOne(registry)
+        context.stack = [{'here':'stack_here', 'there':'stack_there'}]
+        result = context.interpolate('Here is %(here)s, there is %(there)s')
+        self.assertEqual(result, 'Here is /here, there is /there')
+
+    def test_interpolate_from_registry_falls_back_to_stack(self):
+        registry = {'here':'/here'}
+        context = self._makeOne(registry)
+        context.stack = [{'here':'stack_here', 'there':'stack_there'}]
+        result = context.interpolate('Here is %(here)s, there is %(there)s')
+        self.assertEqual(result, 'Here is /here, there is stack_there')
 
     def test_interpolate_nothing_to_interpolate(self):
         registry = {'here':'/here', 'there':'/there'}
@@ -180,6 +194,38 @@ class TestContext(unittest.TestCase):
         expected = open(filename).read()
         self.assertEqual(context.stream('__init__.py').read(), expected)
 
+    def test_abs_filename_absolute(self):
+        import os
+        from repoze.configuration.tests import fixtures
+        filename = os.path.join(os.path.dirname(
+            os.path.abspath(fixtures.__file__)), '__init__.py')
+        context = self._makeOne()
+        result = context.abs_filename(filename)
+        self.assertEqual(result, filename)
+
+    def test_abs_filename_nopackage_nocurrentpackage(self):
+        import os
+        from repoze.configuration.tests import fixtures
+        old_cwd = os.getcwd()
+        fixtures = os.path.dirname(os.path.abspath(fixtures.__file__))
+        filename = os.path.join(fixtures, '__init__.py')
+        try:
+            os.chdir(fixtures)
+            context = self._makeOne()
+            result = context.abs_filename('__init__.py')
+            self.assertEqual(result, filename)
+        finally:
+            os.chdir(old_cwd)
+        
+    def test_abs_filename_nopackage_currentpackage(self):
+        import os
+        from repoze.configuration.tests import fixtures
+        context = self._makeOne()
+        context.stack.append({'package':fixtures})
+        fixtures = os.path.dirname(os.path.abspath(fixtures.__file__))
+        filename = os.path.join(fixtures, '__init__.py')
+        self.assertEqual(context.abs_filename('__init__.py'), filename)
+
     def test_load_standard_loader(self):
         def loader(context, stream):
             context.loaded = True
@@ -197,9 +243,23 @@ class TestContext(unittest.TestCase):
         context.load('configure.yml', fixtures, loader=loader)
         self.assertEqual(context.stack, [])
         self.assertEqual(context.loaded, True)
-                                          
         # doesn't blow up
-        
+
+    def test_load_sets_stack(self):
+        import os
+        result = []
+        def loader(context, stream):
+            result.append(context.stack[-1])
+        context = self._makeOne()
+        from repoze.configuration.tests import fixtures
+        context.stack = [{'package':fixtures}]
+        context.load('configure.yml', fixtures, loader=loader)
+        result = result[0]
+        expect_here = os.path.dirname(os.path.abspath(fixtures.__file__))
+        self.assertEqual(result['here'], expect_here)
+        self.assertEqual(result['override'], False)
+        self.assertEqual(result['filename'], 'configure.yml')
+        self.assertEqual(result['package'], fixtures)
 
     def test_execute(self):
         registry = {}

@@ -1,6 +1,16 @@
 repoze.configuration Changelog
 ==============================
 
+Next release
+------------
+
+- Interpolation variables now try to use the registry first, but fall
+  back to "stack" values; the most important of where is ``%(here)s``;
+  this interpolation variable can be used in any config file.  It will
+  be the absolute path to the parent directory of the configuration
+  file in which it was declared.  Any stack variable can be overridden
+  (for interpolation purposes) by a registry variable.
+
 0.4 (2009-07-25)
 ----------------
 

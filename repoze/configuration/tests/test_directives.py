@@ -56,7 +56,7 @@ class DummyDeclaration:
         self.context = DummyContext()
         self.__dict__.update(kw)
 
-    def expect(self, typ, expected_names=()):
+    def expect(self, typ, names=()):
         if self.badstructure:
             raise ValueError
         if self.diff:

@@ -1,5 +1,4 @@
-from repoze.configuration.loader import YAMLPluginLoader
-
+from repoze.configuration.loader import YAMLPluginLoader # not an API
 from repoze.configuration.exceptions import ConfigurationError # API
 from repoze.configuration.exceptions import ConfigurationConflict # API
 from repoze.configuration.context import Context # API

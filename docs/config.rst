@@ -21,7 +21,7 @@ setuptools entry point.  Here's an example directive:
 
    def appsettings(declaration):
        expect_names = ['charset', 'debug_mode']
-       declaration.expect(dict, expect_names=expect_names)
+       declaration.expect(dict, names=expect_names)
        charset = declaration.string('charset', 'utf-8')
        debug_mode = declaration.boolean('debug_mode', False)
        def callback():
@@ -109,7 +109,7 @@ For example:
 
    def appsettings(declaration):
        expect_names = ['charset', 'debug_mode']
-       declaration.expect(dict, expect_names=expect_names)
+       declaration.expect(dict, names=expect_names)
        charset = declaration.string('charset', 'utf-8')
        debug_mode = declaration.boolean('debug_mode', False)
        override = declaration.boolean('override', False)

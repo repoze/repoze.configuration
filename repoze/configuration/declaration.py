@@ -13,15 +13,16 @@ class Declaration(object):
     def registry(self):
         return self.context.registry
 
-    def expect(self, typ, expected_names=None):
+    def expect(self, typ, names=None):
         """ Raise a ConfigurationError if:
 
         - The type of the declaration structure is not of the same
           type as the object passed as 'typ'.
 
         - ``names`` is not None and the names provided in the
-          structure don't match the 'expected' sequence of names.
-          This only works when the structure is a mapping type.
+          ``structure`` don't match the sequence of names supplied as
+          ``names``.  This only works when the structure is a mapping
+          type.
 
         Otherwise return None.
         """
@@ -30,10 +31,10 @@ class Declaration(object):
                 'Bad structure for directive (%s instead of %s)' %
                 (type(self.structure), typ))
 
-        if expected_names is not None:
+        if names is not None:
             names_provided = set(self.structure.keys())
-            names_expected = set(expected_names)
-            diff = names_provided.difference(names_expected)
+            names_expected = set(names)
+            diff = names_provided.difference(names)
 
             if diff:
                 self.error('Unknown key(s) in directive: %r' % diff)

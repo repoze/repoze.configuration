@@ -1,6 +1,53 @@
 repoze.configuration Changelog
 ==============================
 
+Next release
+------------
+
+- If a ``repoze.configuration.directive`` entry point name begins with
+  the characters 'tag:', treat the name as a YAML tag URI.  YAML tag
+  URIs can be aliased at the top of YAML files to shorter ``!bang!``
+  names via a YAML %TAG directive (see `YAML global tag prefix
+  documentation
+  <http://www.yaml.org/spec/1.2/spec.html#ns-global-tag-prefix>`_.
+
+  The intent is to encourage directive writers to register both a
+  "short name" (a word) and a tag URI for the same entry point
+  function.  Doing so means that a config file writer can optionally
+  use a tag URI (``!<tag:repoze.org,2009:pypes/server>``) in place of
+  a "short name" (``!server``) when the short version can't be used
+  due to a conflict between two directives in separate packages that
+  share the same short name.
+
+  For example, an application might register both ``server =
+  pypes.deploy.directives:server`` and
+  ``tag:repoze.org,2009:pypes/server =
+  pypes.deploy.directives:server`` in a
+  ``repoze.configuration.directive`` section within ``setup.py``.  A
+  config file that used the above entry points might equivalently use
+  any of the three below forms as necessary within a given YAML file::
+
+    # tag alias
+    %TAG !pypes! tag:repoze.org,2009:pypes/
+
+    # short name
+    --- !server
+    name: main
+    port: 8082
+    host: 0.0.0.0
+
+    # rely on tag expansion from %TAG directive
+    --- !pypes!server
+    name: main
+    port: 8082
+    host: 0.0.0.0
+
+    # use literal tag URI
+    --- !<tag:repoze.org,2009:pypes/server>
+    name: main
+    port: 8082
+    host: 0.0.0.0
+
 0.5 (2009-07-26)
 ----------------
 

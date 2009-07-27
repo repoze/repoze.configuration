@@ -5,6 +5,8 @@ from repoze.configuration.exceptions import ConfigurationError
 from repoze.configuration.declaration import YAMLDeclaration
 from repoze.configuration.declaration import lineinfo
 
+import logging
+
 _marker = object()
 
 class YAMLPluginLoader(SafeLoader):
@@ -14,9 +16,15 @@ class YAMLPluginLoader(SafeLoader):
         for point in list(iter_entry_points(self.EP_GROUP)):
             try:
                 directive = point.load()
-                self.add_constructor('!'+point.name, wrap_directive(directive))
+                if point.name.startswith('tag:'):
+                    directive_name = point.name
+                else:
+                    directive_name = '!' + point.name
+                self.add_constructor(directive_name, wrap_directive(directive))
             except ImportError:
-                pass
+                logging.info(
+                    'Could not import repoze.configuration.directive '
+                    'entry point "%s"' % point)
         self.add_constructor('tag:yaml.org,2002:str', self.interpolate_str)
         SafeLoader.__init__(self, stream)
         while self.check_data():

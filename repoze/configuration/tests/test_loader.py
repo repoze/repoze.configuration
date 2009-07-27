@@ -23,7 +23,7 @@ class TestYAMLPluginLoader(unittest.TestCase):
         self.assertEqual(loader.context, context)
         self.failIf('!point' in loader.yaml_constructors) # doesnt blow up
 
-    def test_ctor_ok(self):
+    def test_ctor_shortname(self):
         import os
         from repoze.configuration.tests import fixtures
         directory = os.path.dirname(os.path.abspath(fixtures.__file__))
@@ -37,6 +37,23 @@ class TestYAMLPluginLoader(unittest.TestCase):
         loader = self._makeOne(context, open(file), iter_entry_points)
         self.assertEqual(loader.context, context)
         self.assertEqual(loader.yaml_constructors['!point'].wrapped, directive)
+
+    def test_ctor_tagname(self):
+        import os
+        from repoze.configuration.tests import fixtures
+        directory = os.path.dirname(os.path.abspath(fixtures.__file__))
+        file = os.path.join(directory, 'configure.yml')
+        def directive(context, structure):
+            return 'success'
+        point = DummyPoint(directive)
+        point.name = 'tag:point'
+        def iter_entry_points(group, suffix=None):
+            yield point
+        context = DummyContext()
+        loader = self._makeOne(context, open(file), iter_entry_points)
+        self.assertEqual(loader.context, context)
+        self.assertEqual(loader.yaml_constructors['tag:point'].wrapped,
+                         directive)
 
     def test_interpolate_str(self):
         from yaml.nodes import ScalarNode

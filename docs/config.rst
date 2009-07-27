@@ -143,11 +143,48 @@ so:
        entry_points = """\
        [repoze.configuration.directive]
        appsettings = thispackage.directives:appsettings
+       tag:example.com,2009:thispackage/appsettings = thispackage.directives:appsettings
        """
       )
 
 Once the package is installed via ``setup.py install``, this directive
-can can be used inside a configuration file.
+can can be used inside a configuration file via its short name, ala:
+
+.. code-block:: python
+   :linenos:
+
+   --- !appsettings
+   a: 1
+   b: 2
+
+Or it can be referred to by its "tag name", ala:
+
+.. code-block:: python
+   :linenos:
+
+   --- !<tag:example.com,2009:thispackage/appsettings>
+   a: 1
+   b: 2
+
+The tag name should follow the `YAML global tag prefix specification
+<http://www.yaml.org/spec/1.2/spec.html#ns-global-tag-prefix>`_, which
+will allow it to be aliased to a shorter name via a ``%TAG`` directive
+at the top of a YAML file, ala:
+
+.. code-block:: python
+   :linenos:
+
+   %TAG !app1! tag:example.com,2009:thispackage/
+
+   --- !app1!appsettings
+   a: 1
+   b: 2
+
+
+It's best practice to register both a "short name" and a "tag name"
+entry point defintion for a single directive, in case the short name
+can't be used by configuration file authors due to conflicts between
+short names registered by third-party packages.
 
 Loading Configuration Files That Use Directives
 -----------------------------------------------

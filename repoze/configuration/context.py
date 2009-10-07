@@ -33,7 +33,7 @@ class Context(object):
     def action(self, declaration, callback, discriminator=None, override=False):
         stack_override = self.stack and self.stack[-1]['override']
         effective_override = override or stack_override
-        if not effective_override:
+        if not effective_override and discriminator is not None:
             if discriminator in self.discriminators:
                 conflicting_action = self.discriminators[discriminator]
                 raise ConfigurationConflict(declaration,
@@ -41,7 +41,8 @@ class Context(object):
 
         action = Action(discriminator, callback, declaration)
         self.actions.append(action)
-        self.discriminators[discriminator] = action
+        if discriminator is not None:
+            self.discriminators[discriminator] = action
 
     def resolve(self, dottedname):
         if dottedname.startswith('.') or dottedname.startswith(':'):

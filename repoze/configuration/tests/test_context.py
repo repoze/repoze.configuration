@@ -60,6 +60,14 @@ class TestContext(unittest.TestCase):
         self.assertEqual(context.discriminators['discriminator'],
                          context.actions[0])
 
+    def test_action_no_discriminator_doesnt_conflict(self):
+        context = self._makeOne()
+        context.action('declaration', 'callback')
+        self.assertEqual(len(context.actions), 1)
+        context.action('declaration', 'callback')
+        # no ConfigurationConflict raised
+        self.assertEqual(len(context.actions), 2)
+
     def test_action_withconflict(self):
         from repoze.configuration.context import ConfigurationConflict
         context = self._makeOne()

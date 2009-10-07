@@ -6,7 +6,7 @@ Next release
 
 - When ``context.action`` was called with a ``None`` discriminator
   (the default), it would conflict with other actions that did not
-  supply a discriminator.
+  supply a discriminator either.
 
 - If a ``repoze.configuration.directive`` entry point name begins with
   the characters 'tag:', treat the name as a YAML tag URI.  YAML tag

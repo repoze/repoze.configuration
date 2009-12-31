@@ -1,8 +1,8 @@
 repoze.configuration Changelog
 ==============================
 
-Next release
-------------
+0.6 (2009-12-30)
+----------------
 
 - When ``context.action`` was called with a ``None`` discriminator
   (the default), it would conflict with other actions that did not

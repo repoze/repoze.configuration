@@ -274,9 +274,8 @@ class TestContext(unittest.TestCase):
         context = self._makeOne(registry)
         actions = [ DummyAction(), DummyAction()]
         context.actions = actions
-        result = context.execute()
+        context.execute()
         self.assertEqual([action.executed for action in actions], [True, True])
-        self.failUnless(result is registry)
 
 class TestAction(unittest.TestCase):
     def _getTargetClass(self):

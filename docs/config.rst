@@ -2,11 +2,11 @@ Using the :mod:`repoze.configuration` Configuration System
 ==========================================================
 
 :mod:`repoze.configuration` comes with a configuration system that
-makes it possible to populate a dictionary and perform other arbitrary
-actions by loading a configuration file.  The configuration file
-format is :term:`YAML`.  Each "document" (a section that begins with
-the marker "---') in the YAML file represents one call to a
-:mod:`repoze.configuration` :term:`directive`.
+makes it possible to perform arbitrary actions by loading a
+configuration file.  The configuration file format is :term:`YAML`.
+Each "document" (a section that begins with the marker "---') in the
+YAML file represents one call to a :mod:`repoze.configuration`
+:term:`directive`.
 
 .. _definingdirectives:
 
@@ -25,8 +25,8 @@ setuptools entry point.  Here's an example directive:
        charset = declaration.string('charset', 'utf-8')
        debug_mode = declaration.boolean('debug_mode', False)
        def callback():
-           declaration.registry['charset'] = charset
-           declaration.registry['debug_mode'] = debug_mode
+           declaration.context.registry['charset'] = charset
+           declaration.context.registry['debug_mode'] = debug_mode
        declaration.action(callback, discriminator='appsettings')
 
 A :mod:`repoze.configuration` directive must accept a "declaration"
@@ -41,10 +41,6 @@ structure
   configuration file.  It usually a mapping, but can also be a
   sequence or a scalar.  See the :term:`YAML` documentation for more
   information about allowable types within a YAML "document".
-
-registry
-
-  The configuration registry (a dictionary)
 
 context
 
@@ -73,11 +69,11 @@ a function which, when called (with no arguments) will actually
 perform "the work".  All action callbacks will be called by
 :mod:`repoze.configuration` after all directives have been loaded and
 called.  A ``callback`` passed to ``declaration.action`` often
-populates the ``registry`` dictionary attached to the context.  It is
-also assumed that a directive will use the provided
-"declaration.context" object as a scratchpad for temporary data if it
-needs to collaborate in some advanced way with other directives.  The
-context object is not "precious" in any way.
+populates state objects attached to the ``declaration.context``.  It
+is also assumed that a directive will use the provided
+``declaration.context`` object as a scratchpad for temporary data if
+it needs to collaborate in some advanced way with other directives.
+The context object is not "precious" in any way.
 
 The ``discriminator`` argument to ``declaration.action`` is optional.
 It defaults to None (meaning no discriminator is saved for this
@@ -114,8 +110,8 @@ For example:
        debug_mode = declaration.boolean('debug_mode', False)
        override = declaration.boolean('override', False)
        def callback():
-           declaration.registry['charset'] = charset
-           declaration.registry['debug_mode'] = debug_mode
+           declaration.context.registry['charset'] = charset
+           declaration.context.registry['debug_mode'] = debug_mode
        declaration.action(callback, discriminator='appsettings', 
                           override=override)
 
@@ -210,10 +206,10 @@ does not find such an entry point, an error is raised.  If it finds
 more than one entry point in the ``repoze.configuration.directive`` group
 with the same name, an error is raised.  
 
-In the above example, the registry dictionary will eventually be
-populated with two key-value pairs: ``charset`` will be set to the
-string ``utf-8`` and ``debug_mode`` will be set to the boolean
-``True`` value.
+In the above example, the ``context.registry`` dictionary will
+eventually be populated with two key-value pairs: ``charset`` will be
+set to the string ``utf-8`` and ``debug_mode`` will be set to the
+boolean ``True`` value.
 
 A configuration file can contain many calls to the same directive (at
 least if the directive's discriminators don't conflict), and calls to
@@ -280,9 +276,7 @@ filename is found in the current working directory.
    >>> context = execute('configure.yml', package=somepackge)
 
 ``execute`` loads the configuration, executes the actions implied by
-the configuration, and returns a context.  You can access the fully
-populated registry dictionary by referring to the context's
-``registry`` attribute:
+the configuration, and returns a context.
 
 .. code-block:: python
    :linenos:
@@ -290,9 +284,6 @@ populated registry dictionary by referring to the context's
    >>> # load configuration without a package via an absolute path
    >>> from repoze.configuration import load
    >>> context = execute('/path/to/configure.yml')
-   >>> registry = context.registry
-
-You can then use the registry dictionary within your application.
 
 Using ``repoze.configuration.load``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

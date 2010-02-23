@@ -7,7 +7,8 @@ Scalar values (strings) in :mod:`repoze.configuration` directives can
 include interpolation markers.  Interpolation markers are in the
 Python interpolation form ``%(replaceme)s``.  Interpolation expands
 values by attempting to resolve the name being replaced by treating
-the registry of the configuration context as a dictionary.
+the ``registry`` attribute of the configuration context as a
+dictionary.  This attribute is guaranteed to exist.
 
 If the registry of the context does not have the name, a few built-in
 names are tried:

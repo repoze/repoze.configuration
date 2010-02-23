@@ -33,7 +33,6 @@ class Declaration(object):
 
         if names is not None:
             names_provided = set(self.structure.keys())
-            names_expected = set(names)
             diff = names_provided.difference(names)
 
             if diff:

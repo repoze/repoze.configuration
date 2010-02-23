@@ -9,11 +9,14 @@ _INTERP = re.compile(r"%\(([^)]*)\)s")
 
 class Context(object):
 
-    def __init__(self, registry, loader=None):
+    def __init__(self, registry=None, loader=None, **kw):
+        if registry is None:
+            registry = {}
+        self.registry = registry
         if loader is None:
             loader = YAMLPluginLoader
         self.loader = loader
-        self.registry = registry
+        self.__dict__.update(kw)
         self.actions = []
         self.stack = []
         self.discriminators = {}
@@ -103,7 +106,6 @@ class Context(object):
     def execute(self):
         for action in self.actions:
             action.execute()
-        return self.registry
 
 class Action(object):
     def __init__(self, discriminator, callback, declaration):

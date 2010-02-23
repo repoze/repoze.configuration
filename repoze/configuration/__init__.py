@@ -16,7 +16,6 @@ def load(filename='configure.yml', package=None, context=None, loader=None):
        >>> # load configuration without a package via an absolute path
        >>> from repoze.configuration import load
        >>> context = load('/path/to/configure.yml')
-       >>> registry = context.registry
 
     After using ``load`` you can subsequently execute the directive
     actions using the ``execute()`` method of the returned context
@@ -28,17 +27,15 @@ def load(filename='configure.yml', package=None, context=None, loader=None):
     arguments passed to this function.
     """
     if context is None:
-        registry = {}
-        context = Context(registry, loader)
+        context = Context(loader=loader)
     context.load(filename, package)
     return context
 
 def execute(filename='configure.yml', package=None, context=None, loader=None):
     """
-    ``execute`` loads the configuration, executes the actions
-    implied by the configuration, and returns a context.  After
-    successful execution, you can access the populated registry
-    dictionary by referring to the context's ``registry`` attribute:
+    ``execute`` loads the configuration, executes the actions implied
+    by the configuration, and returns a context.  After successful
+    execution, the context object's state will be modified:
 
     ``execute`` accepts a ``filename`` argument and a ``package``
     argument.  The ``package`` argument is optional.  If it is not
@@ -58,7 +55,6 @@ def execute(filename='configure.yml', package=None, context=None, loader=None):
        >>> from repoze.configuration import load
        >>> import somepackage
        >>> context = execute('configure.yml', package=somepackge)
-       >>> registry = context.registry
     """
     context = load(filename, package, context, loader)
     context.execute()

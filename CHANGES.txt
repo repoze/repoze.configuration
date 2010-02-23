@@ -1,6 +1,17 @@
 repoze.configuration Changelog
 ==============================
 
+Next release
+------------
+
+- Allow ``repoze.configuration.context.Context`` constructor to take
+  arbitrary keyword arguments.  These kw arguments are added to the
+  instance ``__dict__`` of the result context object.
+
+- The return value of ``repoze.configuration.context.Context.execute``
+  is no longer the ``registry`` attribute of the context object; it is
+  instead ``None``.  The ``registry`` object is no longer "special".
+
 0.6 (2009-12-30)
 ----------------
 

@@ -1,8 +1,8 @@
 repoze.configuration Changelog
 ==============================
 
-Next release
-------------
+0.7 (2010-02-24)
+----------------
 
 - Allow ``repoze.configuration.context.Context`` constructor to take
   arbitrary keyword arguments.  These kw arguments are added to the

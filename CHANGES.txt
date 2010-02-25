@@ -1,6 +1,13 @@
 repoze.configuration Changelog
 ==============================
 
+Unreleased
+----------
+
+- Added a class, repoze.configuration.imperative.ImperitaveConfig which allows
+  a configuration object to offer an imperative API that is based on directives
+  that are discoverable as entry points.
+
 0.7 (2010-02-24)
 ----------------
 

@@ -195,6 +195,13 @@ class PythonDeclaration(Declaration):
         self.context = context
         self.structure = dict(kw)
 
+class ImperativeDeclaration(PythonDeclaration):
+    def action(self, callback, discriminator=None, override=False):
+        """
+        Execute immediately, don't discriminate.
+        """
+        callback()
+
 def lineinfo(node):
     start_mark = node.start_mark
     end_mark = node.end_mark

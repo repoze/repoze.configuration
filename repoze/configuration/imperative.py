@@ -2,7 +2,7 @@ import logging
 from pkg_resources import iter_entry_points
 
 from repoze.configuration.context import Context
-from repoze.configuration.declaration import PythonDeclaration
+from repoze.configuration.declaration import ImperativeDeclaration
 
 _ambiguous = object()
 
@@ -13,7 +13,7 @@ class ImperativeConfig(object):
     """
     EP_GROUP = 'repoze.configuration.directive'
     CONFIG_ATTR = 'config'
-    Declaration = PythonDeclaration
+    Declaration = ImperativeDeclaration
     Context = Context
 
     def __init__(self, context=None,

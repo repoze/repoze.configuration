@@ -224,6 +224,22 @@ class TestPythonDirective(unittest.TestCase):
         self.assertEqual(target.structure, {'foo': 'foo', 'bar': 'baz'})
         self.assertEqual(target.lineinfo, '')
 
+class TestPythonDirective(unittest.TestCase):
+    def _getTargetClass(self):
+        from repoze.configuration.declaration import ImperativeDeclaration
+        return ImperativeDeclaration
+
+    def _makeOne(self, context, **kw):
+        return self._getTargetClass()(context, **kw)
+
+    def test_action(self):
+        calls = []
+        def do_this():
+            calls.append(1)
+        target = self._makeOne(object())
+        target.action(do_this)
+        self.assertEqual(calls, [1])
+
 class Test_lineinfo(unittest.TestCase):
     def _callFUT(self, node):
         from repoze.configuration.declaration import lineinfo

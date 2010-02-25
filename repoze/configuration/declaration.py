@@ -189,6 +189,8 @@ class YAMLDeclaration(Declaration):
     structure = property(get_structure, set_structure)
 
 class PythonDeclaration(Declaration):
+    lineinfo = ''
+
     def __init__(self, context, **kw):
         self.context = context
         self.structure = dict(kw)

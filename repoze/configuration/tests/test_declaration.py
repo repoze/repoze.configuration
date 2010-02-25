@@ -222,6 +222,7 @@ class TestPythonDirective(unittest.TestCase):
         target = self._makeOne(context, foo='foo', bar='baz')
         self.assertEqual(target.context, context)
         self.assertEqual(target.structure, {'foo': 'foo', 'bar': 'baz'})
+        self.assertEqual(target.lineinfo, '')
 
 class Test_lineinfo(unittest.TestCase):
     def _callFUT(self, node):

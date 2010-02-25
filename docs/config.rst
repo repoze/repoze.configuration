@@ -25,8 +25,8 @@ setuptools entry point.  Here's an example directive:
        charset = declaration.string('charset', 'utf-8')
        debug_mode = declaration.boolean('debug_mode', False)
        def callback():
-           declaration.context.registry['charset'] = charset
-           declaration.context.registry['debug_mode'] = debug_mode
+           declaration.context['charset'] = charset
+           declaration.context['debug_mode'] = debug_mode
        declaration.action(callback, discriminator='appsettings')
 
 A :mod:`repoze.configuration` directive must accept a "declaration"
@@ -110,8 +110,8 @@ For example:
        debug_mode = declaration.boolean('debug_mode', False)
        override = declaration.boolean('override', False)
        def callback():
-           declaration.context.registry['charset'] = charset
-           declaration.context.registry['debug_mode'] = debug_mode
+           declaration.context['charset'] = charset
+           declaration.context['debug_mode'] = debug_mode
        declaration.action(callback, discriminator='appsettings', 
                           override=override)
 
@@ -206,10 +206,10 @@ does not find such an entry point, an error is raised.  If it finds
 more than one entry point in the ``repoze.configuration.directive`` group
 with the same name, an error is raised.  
 
-In the above example, the ``context.registry`` dictionary will
-eventually be populated with two key-value pairs: ``charset`` will be
-set to the string ``utf-8`` and ``debug_mode`` will be set to the
-boolean ``True`` value.
+In the above example, the ``context`` mapping will eventually be
+populated with two key-value pairs: ``charset`` will be set to the
+string ``utf-8`` and ``debug_mode`` will be set to the boolean
+``True`` value.
 
 A configuration file can contain many calls to the same directive (at
 least if the directive's discriminators don't conflict), and calls to
@@ -301,7 +301,6 @@ filename is found in the current working directory.
    >>> # load configuration without a package via an absolute path
    >>> from repoze.configuration import load
    >>> context = load('/path/to/configure.yml')
-   >>> registry = context.registry
 
 After using ``load`` you can subsequently execute the directive
 actions using the ``execute()`` method of the returned context object.

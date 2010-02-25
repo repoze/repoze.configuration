@@ -27,7 +27,7 @@ def load(filename='configure.yml', package=None, context=None, loader=None):
     arguments passed to this function.
     """
     if context is None:
-        context = Context(loader=loader)
+        context = Context(_loader=loader)
     context.load(filename, package)
     return context
 
@@ -35,7 +35,8 @@ def execute(filename='configure.yml', package=None, context=None, loader=None):
     """
     ``execute`` loads the configuration, executes the actions implied
     by the configuration, and returns a context.  After successful
-    execution, the context object's state will be modified:
+    execution, the context object's state will be modified.  The
+    context object is a mapping object.
 
     ``execute`` accepts a ``filename`` argument and a ``package``
     argument.  The ``package`` argument is optional.  If it is not
@@ -49,7 +50,6 @@ def execute(filename='configure.yml', package=None, context=None, loader=None):
        >>> # load configuration without a package via an absolute path
        >>> from repoze.configuration import execute
        >>> context = execute('/path/to/configure.yml')
-       >>> registry = context.registry
 
        >>> # load configuration from the 'configure.yml' file within 'somepackage'
        >>> from repoze.configuration import load

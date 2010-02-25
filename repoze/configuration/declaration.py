@@ -9,6 +9,10 @@ class Declaration(object):
     def __init__(self, **kw):
         self.__dict__.update(kw)
 
+    @property
+    def registry(self): # bw compat shim only
+        return self.context
+
     def expect(self, typ, names=None):
         """ Raise a ConfigurationError if:
 

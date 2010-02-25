@@ -16,7 +16,7 @@ class TestImperativeConfig(unittest.TestCase):
 
         config = self._makeOne(None, dummy_iter)
         self.failUnless(hasattr(config, 'point'))
-        self.assertEqual(config.context.config, config)
+        self.assertEqual(config.context['config'], config)
 
     def test_import_error(self):
         directive = DummyDirective()

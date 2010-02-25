@@ -8,6 +8,11 @@ class TestDeclaration(unittest.TestCase):
     def _makeOne(self, **kw):
         return self._getTargetClass()(**kw)
 
+    def test_registry(self):
+        context = DummyContext()
+        decl = self._makeOne(context = context)
+        self.assertEqual(decl.registry, context)
+
     def test_expect_no_names_wrongtype(self):
         from repoze.configuration.exceptions import ConfigurationError
         decl = self._makeOne(structure=[], lineinfo='')

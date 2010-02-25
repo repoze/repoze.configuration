@@ -1,8 +1,19 @@
 repoze.configuration Changelog
 ==============================
 
-Unreleased
-----------
+Next release
+------------
+
+- Instances of ``repoze.configuration.context.Context`` now inherit
+  from ``dict``.  Previously, the context object was guaranteed to
+  have a subattr named ``registry`` which was presumed to be dictlike;
+  interpolation used this dictionary to resolve names.  This
+  "registry", for interpolation purposes, is now assumed to be the
+  context itself.  A property alias named ``registry`` has been added
+  to the context for bw compat.
+
+- The declaration object's ``registry`` property is now deprecated;
+  instead ``declaration.context`` should be used directly.
 
 - Added a class, repoze.configuration.imperative.ImperitaveConfig which allows
   a configuration object to offer an imperative API that is based on directives

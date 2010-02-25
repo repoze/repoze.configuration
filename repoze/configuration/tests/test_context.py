@@ -5,48 +5,51 @@ class TestContext(unittest.TestCase):
         from repoze.configuration import Context
         return Context
 
-    def _makeOne(self, registry=None, loader=None):
-        if registry is None:
-            registry = {}
-        return self._getTargetClass()(registry, loader)
+    def _makeOne(self, data=None, loader=None):
+        if data is None:
+            data = {}
+        return self._getTargetClass()(data, _loader=loader)
 
     def test_ctor(self):
-        registry = {}
-        context = self._makeOne(registry, 'loader')
-        self.assertEqual(context.registry, registry)
+        data = {}
+        context = self._makeOne(data, 'loader')
         self.assertEqual(context.loader, 'loader')
         self.assertEqual(context.stack, [])
         self.assertEqual(context.actions, [])
 
-    def test_interpolate_from_registry(self):
-        registry = {'here':'/here', 'there':'/there'}
-        context = self._makeOne(registry)
+    def test_registry(self):
+        context = self._makeOne()
+        self.assertEqual(context.registry, context)
+
+    def test_interpolate_from_data(self):
+        data = {'here':'/here', 'there':'/there'}
+        context = self._makeOne(data)
         result = context.interpolate('Here is %(here)s, there is %(there)s')
         self.assertEqual(result, 'Here is /here, there is /there')
 
-    def test_interpolate_from_registry_overrides_stack(self):
-        registry = {'here':'/here', 'there':'/there'}
-        context = self._makeOne(registry)
+    def test_interpolate_from_data_overrides_stack(self):
+        data = {'here':'/here', 'there':'/there'}
+        context = self._makeOne(data)
         context.stack = [{'here':'stack_here', 'there':'stack_there'}]
         result = context.interpolate('Here is %(here)s, there is %(there)s')
         self.assertEqual(result, 'Here is /here, there is /there')
 
-    def test_interpolate_from_registry_falls_back_to_stack(self):
-        registry = {'here':'/here'}
-        context = self._makeOne(registry)
+    def test_interpolate_from_data_falls_back_to_stack(self):
+        data = {'here':'/here'}
+        context = self._makeOne(data)
         context.stack = [{'here':'stack_here', 'there':'stack_there'}]
         result = context.interpolate('Here is %(here)s, there is %(there)s')
         self.assertEqual(result, 'Here is /here, there is stack_there')
 
     def test_interpolate_nothing_to_interpolate(self):
-        registry = {'here':'/here', 'there':'/there'}
-        context = self._makeOne(registry)
+        data = {'here':'/here', 'there':'/there'}
+        context = self._makeOne(data)
         result = context.interpolate('Here is %(here')
         self.assertEqual(result, 'Here is %(here')
 
     def test_interpolate_keyerror(self):
-        registry = {}
-        context = self._makeOne(registry)
+        data = {}
+        context = self._makeOne(data)
         self.assertRaises(KeyError, context.interpolate, 'Here is %(here)s')
 
     def test_action(self):
@@ -270,8 +273,8 @@ class TestContext(unittest.TestCase):
         self.assertEqual(result['package'], fixtures)
 
     def test_execute(self):
-        registry = {}
-        context = self._makeOne(registry)
+        data = {}
+        context = self._makeOne(data)
         actions = [ DummyAction(), DummyAction()]
         context.actions = actions
         context.execute()

@@ -8,7 +8,7 @@ class TestLoad(unittest.TestCase):
     def test_no_context(self):
         from repoze.configuration.tests import fixtures
         context = self._callFUT('configure.yml', fixtures, None)
-        self.assertEqual(context.registry, {})
+        self.assertEqual(context, {})
 
     def test_with_context(self):
         context = DummyContext()
@@ -24,7 +24,7 @@ class TestExecute(unittest.TestCase):
     def test_no_context(self):
         from repoze.configuration.tests import fixtures
         context = self._callFUT('configure.yml', fixtures, None)
-        self.assertEqual(context.registry, {})
+        self.assertEqual(context, {})
 
     def test_with_context(self):
         context = DummyContext()

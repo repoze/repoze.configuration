@@ -7,25 +7,27 @@ from repoze.configuration.loader import YAMLPluginLoader
 
 _INTERP = re.compile(r"%\(([^)]*)\)s")
 
-class Context(object):
+class Context(dict):
 
-    def __init__(self, registry=None, loader=None, **kw):
-        if registry is None:
-            registry = {}
-        self.registry = registry
+    def __init__(self, *data, **kw):
+        loader = kw.pop('_loader', None)
         if loader is None:
             loader = YAMLPluginLoader
+        dict.__init__(self, *data, **kw)
         self.loader = loader
-        self.__dict__.update(kw)
         self.actions = []
         self.stack = []
         self.discriminators = {}
 
+    @property
+    def registry(self): # bw compat shim
+        return self
+
     def interpolate(self, value):
         def _interpolation_replace(match):
             s = match.group(1)
-            if s in self.registry:
-                return self.registry[s]
+            if s in self:
+                return self[s]
             if self.stack and s in self.stack[-1]:
                 return self.stack[-1][s]
             raise KeyError(s)

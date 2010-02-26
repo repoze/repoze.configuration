@@ -35,11 +35,11 @@ class TestDeclaration(unittest.TestCase):
         from repoze.configuration.exceptions import ConfigurationError
         decl = self._makeOne(structure = {'a':1}, lineinfo='')
         self.assertRaises(ConfigurationError, decl.getvalue, 'a', types=(str,))
-        
+
     def test_getvalue_default(self):
         decl = self._makeOne(structure={})
         self.assertEqual(decl.getvalue('a'), None)
-        
+
     def test_getvalue_get(self):
         structure = {'a':'1'}
         decl = self._makeOne(structure=structure)
@@ -52,7 +52,7 @@ class TestDeclaration(unittest.TestCase):
         val = decl.getvalue('a', pop=True)
         self.assertEqual(val, 1)
         self.assertEqual(structure, {})
-        
+
     def test_boolean_true(self):
         for val in ('t', 'true', 'yes', 'on', '1'):
             decl = self._makeOne(structure = {'a':val})
@@ -89,7 +89,7 @@ class TestDeclaration(unittest.TestCase):
         val = decl.string('a')
         self.assertEqual(val, 'yo!')
         self.assertEqual(structure, {'a':'yo!'})
-        
+
     def test_string_wrongtype(self):
         from repoze.configuration.exceptions import ConfigurationError
         decl = self._makeOne(structure = {'a':1}, lineinfo='')
@@ -108,7 +108,7 @@ class TestDeclaration(unittest.TestCase):
         val = decl.integer('a')
         self.assertEqual(val, 1)
         self.assertEqual(structure, {'a':1})
-        
+
     def test_integer_pop(self):
         structure = {'a':1}
         decl = self._makeOne(structure=structure)
@@ -214,11 +214,42 @@ class TestYAMLDeclaration(unittest.TestCase):
         decl.structure = 'structure'
         self.assertEqual(decl._structure, 'structure')
 
+class TestPythonDirective(unittest.TestCase):
+    def _getTargetClass(self):
+        from repoze.configuration.declaration import PythonDeclaration
+        return PythonDeclaration
+
+    def _makeOne(self, context, **kw):
+        return self._getTargetClass()(context, **kw)
+
+    def test_ctor(self):
+        context = object()
+        target = self._makeOne(context, foo='foo', bar='baz')
+        self.assertEqual(target.context, context)
+        self.assertEqual(target.structure, {'foo': 'foo', 'bar': 'baz'})
+        self.assertEqual(target.lineinfo, '')
+
+class TestPythonDirective(unittest.TestCase):
+    def _getTargetClass(self):
+        from repoze.configuration.declaration import ImperativeDeclaration
+        return ImperativeDeclaration
+
+    def _makeOne(self, context, **kw):
+        return self._getTargetClass()(context, **kw)
+
+    def test_action(self):
+        calls = []
+        def do_this():
+            calls.append(1)
+        target = self._makeOne(object())
+        target.action(do_this)
+        self.assertEqual(calls, [1])
+
 class Test_lineinfo(unittest.TestCase):
     def _callFUT(self, node):
         from repoze.configuration.declaration import lineinfo
         return lineinfo(node)
-    
+
     def test_withfile(self):
         import os
         here = os.path.normpath(os.path.dirname(__file__))
@@ -231,7 +262,7 @@ class Test_lineinfo(unittest.TestCase):
         node.start_mark.column = 2
         node.start_mark.index = 0
         node.start_mark.name = filename
-        
+
         node.end_mark.line = 1
         node.end_mark.column = 2
         node.end_mark.index = 0
@@ -259,7 +290,7 @@ class DummyNode:
         self.id = id
         self.start_mark = DummyMark()
         self.end_mark = DummyMark()
-        
+
 class DummyMark:
     line = 1
     column = 1
@@ -280,8 +311,8 @@ class DummyContext:
 
     def action(self, directive, callback, discriminator=None, override=False):
         self.actions.append((directive, callback, discriminator, override))
-        
-        
+
+
 class DummyLoader:
     def __init__(self, context):
         self.context = context
@@ -291,5 +322,5 @@ class DummyLoader:
 
     def construct_shallow(self, node):
         return 'shallow'
-    
-    
+
+

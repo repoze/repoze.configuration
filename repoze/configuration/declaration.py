@@ -9,10 +9,10 @@ class Declaration(object):
     def __init__(self, **kw):
         self.__dict__.update(kw)
 
-    @property 
+    @property
     def registry(self): # bw compat shim only
         return self.context
-    
+
     def expect(self, typ, names=None):
         """ Raise a ConfigurationError if:
 
@@ -69,7 +69,7 @@ class Declaration(object):
         If ``name`` does not exist in the structure, return ``default``.
 
         If ``name`` exists in the structure, and is a string or
-        unicode type, return a boolean True if the string is any of 
+        unicode type, return a boolean True if the string is any of
         ``('t', 'true', 'yes', 'on', '1')``, otherwise return False.
 
         If the ``name`` exists in the structure and is not a string or
@@ -154,7 +154,7 @@ class YAMLDeclaration(Declaration):
     It also has helper methods made available for use in directives.
 
     A declaration always has the following attributes:
-    
+
     - structure: the Python data structure representing the parsed
       configuration file content.
 
@@ -191,6 +191,20 @@ class YAMLDeclaration(Declaration):
         self._structure = structure
 
     structure = property(get_structure, set_structure)
+
+class PythonDeclaration(Declaration):
+    lineinfo = ''
+
+    def __init__(self, context, **kw):
+        self.context = context
+        self.structure = dict(kw)
+
+class ImperativeDeclaration(PythonDeclaration):
+    def action(self, callback, discriminator=None, override=False):
+        """
+        Execute immediately, don't discriminate.
+        """
+        callback()
 
 def lineinfo(node):
     start_mark = node.start_mark

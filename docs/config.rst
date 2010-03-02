@@ -178,7 +178,7 @@ at the top of a YAML file, ala:
 
 
 It's best practice to register both a "short name" and a "tag name"
-entry point defintion for a single directive, in case the short name
+entry point definition for a single directive, in case the short name
 can't be used by configuration file authors due to conflicts between
 short names registered by third-party packages.
 

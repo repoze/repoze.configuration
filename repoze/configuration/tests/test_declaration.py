@@ -214,7 +214,7 @@ class TestYAMLDeclaration(unittest.TestCase):
         decl.structure = 'structure'
         self.assertEqual(decl._structure, 'structure')
 
-class TestPythonDirective(unittest.TestCase):
+class TestPythonDeclaration(unittest.TestCase):
     def _getTargetClass(self):
         from repoze.configuration.declaration import PythonDeclaration
         return PythonDeclaration
@@ -229,7 +229,7 @@ class TestPythonDirective(unittest.TestCase):
         self.assertEqual(target.structure, {'foo': 'foo', 'bar': 'baz'})
         self.assertEqual(target.lineinfo, '')
 
-class TestPythonDirective(unittest.TestCase):
+class TestImperativeDeclaration(unittest.TestCase):
     def _getTargetClass(self):
         from repoze.configuration.declaration import ImperativeDeclaration
         return ImperativeDeclaration

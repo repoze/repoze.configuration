@@ -70,9 +70,6 @@ class DummyDeclaration:
     def resolve(self, dottedname):
         return dottedname
 
-    def error(self, node, msg):
-        raise ValueError(node, msg)
-    
 class DummyContext:
     loaded = None
     def current_package(self):

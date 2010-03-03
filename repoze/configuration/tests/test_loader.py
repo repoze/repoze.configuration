@@ -13,8 +13,7 @@ class TestYAMLPluginLoader(unittest.TestCase):
         from repoze.configuration.tests import fixtures
         directory = os.path.dirname(os.path.abspath(fixtures.__file__))
         file = os.path.join(directory, 'configure.yml')
-        def directive(context, structure):
-            return 'success'
+        def directive(context, structure): return 'success'
         point = DummyPoint(directive, raise_load_exc=True)
         def iter_entry_points(group, suffix=None):
             yield point
@@ -28,8 +27,7 @@ class TestYAMLPluginLoader(unittest.TestCase):
         from repoze.configuration.tests import fixtures
         directory = os.path.dirname(os.path.abspath(fixtures.__file__))
         file = os.path.join(directory, 'configure.yml')
-        def directive(context, structure):
-            return 'success'
+        def directive(context, structure): return 'success'
         point = DummyPoint(directive)
         def iter_entry_points(group, suffix=None):
             yield point
@@ -43,8 +41,7 @@ class TestYAMLPluginLoader(unittest.TestCase):
         from repoze.configuration.tests import fixtures
         directory = os.path.dirname(os.path.abspath(fixtures.__file__))
         file = os.path.join(directory, 'configure.yml')
-        def directive(context, structure):
-            return 'success'
+        def directive(context, structure): return 'success'
         point = DummyPoint(directive)
         point.name = 'tag:point'
         def iter_entry_points(group, suffix=None):
@@ -95,16 +92,6 @@ class Test_wrap_directive(unittest.TestCase):
 class DummyLoader:
     def __init__(self, context):
         self.context = context
-
-    def construct_theid(self, node):
-        return {}
-
-    def construct_mapping(self, node, deep=False):
-        self.deep = deep
-        return {}
-
-    def construct_scalar(self, node):
-        return 'scalar'
 
 class DummyContext:
     def __init__(self, interpolation_exc=False):

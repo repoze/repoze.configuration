@@ -32,6 +32,13 @@ Table of Contents
    api
    glossary
 
+Source Code and Issue Tracking
+------------------------------
+
+To obtain source code, visit https://github.com/repoze/repoze.configuration
+
+To file issues, visit https://github.com/repoze/repoze.configuration/issues
+
 Indices and tables
 ------------------
 

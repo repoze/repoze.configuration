@@ -4,6 +4,9 @@ repoze.configuration Changelog
 Next release
 ------------
 
+- Added 'setup.py dev' alias (runs ``setup.py develop`` plus installs
+  ``nose`` and ``coverage``).
+
 - Instances of ``repoze.configuration.context.Context`` now inherit
   from ``dict``.  Previously, the context object was guaranteed to
   have a subattr named ``registry`` which was presumed to be dictlike;

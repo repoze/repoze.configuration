@@ -28,6 +28,8 @@ if sys.version_info >= (2, 5):
 else:
     requires = ['PyYAML<3.10dev']
 
+testing_extras = ['nose', 'coverage']
+
 setup(name='repoze.configuration',
       version=__version__,
       description='A configuration system using YAML and entry points',
@@ -52,5 +54,8 @@ setup(name='repoze.configuration',
       [repoze.configuration.directive]
       include = repoze.configuration.directives:include
       """,
+      extras_require = {
+        'testing':  requires + testing_extras,
+      }
 )
 

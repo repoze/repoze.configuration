@@ -4,6 +4,8 @@ repoze.configuration Changelog
 Next release
 ------------
 
+- Added support for continuous integration using ``tox`` and ``jenkins``.
+
 - Added 'setup.py dev' alias (runs ``setup.py develop`` plus installs
   ``nose`` and ``coverage``).
 

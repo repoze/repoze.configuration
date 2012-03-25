@@ -13,9 +13,13 @@ class TestYAMLPluginLoader(unittest.TestCase):
         from repoze.configuration.tests import fixtures
         directory = os.path.dirname(os.path.abspath(fixtures.__file__))
         file = os.path.join(directory, 'configure.yml')
+        def include(declaration): return 'success'
+        inc_point = DummyPoint(include)
+        inc_point.name = 'include'
         def directive(context, structure): return 'success'
         point = DummyPoint(directive, raise_load_exc=True)
         def iter_entry_points(group, suffix=None):
+            yield inc_point
             yield point
         context = DummyContext()
         loader = self._makeOne(context, open(file), iter_entry_points)
@@ -27,9 +31,13 @@ class TestYAMLPluginLoader(unittest.TestCase):
         from repoze.configuration.tests import fixtures
         directory = os.path.dirname(os.path.abspath(fixtures.__file__))
         file = os.path.join(directory, 'configure.yml')
+        def include(declaration): return 'success'
+        inc_point = DummyPoint(include)
+        inc_point.name = 'include'
         def directive(context, structure): return 'success'
         point = DummyPoint(directive)
         def iter_entry_points(group, suffix=None):
+            yield inc_point
             yield point
         context = DummyContext()
         loader = self._makeOne(context, open(file), iter_entry_points)
@@ -41,10 +49,14 @@ class TestYAMLPluginLoader(unittest.TestCase):
         from repoze.configuration.tests import fixtures
         directory = os.path.dirname(os.path.abspath(fixtures.__file__))
         file = os.path.join(directory, 'configure.yml')
+        def include(declaration): return 'success'
+        inc_point = DummyPoint(include)
+        inc_point.name = 'include'
         def directive(context, structure): return 'success'
         point = DummyPoint(directive)
         point.name = 'tag:point'
         def iter_entry_points(group, suffix=None):
+            yield inc_point
             yield point
         context = DummyContext()
         loader = self._makeOne(context, open(file), iter_entry_points)

@@ -12,7 +12,7 @@
 #
 ##############################################################################
 
-__version__ = '0.8'
+__version__ = '0.9dev'
 
 import os
 import sys
@@ -23,10 +23,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.txt')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
-if sys.version_info >= (2, 5):
-    requires = ['PyYAML']
-else:
-    requires = ['PyYAML<3.10dev']
+requires = ['PyYAML']
 
 testing_extras = ['nose', 'coverage']
 
@@ -37,8 +34,6 @@ setup(name='repoze.configuration',
       classifiers=[
         "Intended Audience :: Developers",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 2.4",
-        "Programming Language :: Python :: 2.5",
         "Programming Language :: Python :: 2.6",
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: Implementation :: CPython",

@@ -20,9 +20,9 @@ Next release
 - The declaration object's ``registry`` property is now deprecated;
   instead ``declaration.context`` should be used directly.
 
-- Added a class, repoze.configuration.imperative.ImperitaveConfig which allows
-  a configuration object to offer an imperative API that is based on directives
-  that are discoverable as entry points.
+- Added a class, ``repoze.configuration.imperative.ImperativeConfig``,
+  which allows a configuration object to offer an imperative API that is
+  based on directives that are discoverable as entry points.
 
 0.7 (2010-02-24)
 ----------------
